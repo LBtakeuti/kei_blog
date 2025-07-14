@@ -16,71 +16,35 @@ interface Post {
   category?: string
 }
 
-const defaultPosts: Post[] = [
-  {
-    id: 1,
-    title: "The Future of Sustainable Living",
-    excerpt: "Explore innovative approaches to eco-friendly living, from renewable energy solutions to zero-waste lifestyles.",
-    author: "Emma Carter",
-    date: "July 26, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCffIFhoH1QgzKS_Wz05dELc07wG3C9MEMAOxshqVokSs53XjSiixUnrQmHngxMyZdArQDJHp1Q30NIuLyPF6256Y48JYRgpHes_fEx4OCICvucga_zej9-PJrDDWRnVUk7rF_8lP7gAEH4X1QsBVvTOacAVTPsuO29hGymYvhJR-G4n4tJOot9XQmNlOBiZb0oeCt41MSRIAB2-H2XcPEK21SWQ2_v7HaebFktfT9Y1Yj6CGuoF0iaL11u-9gD8CNAsRTdIE1T1oEG",
-    category: "lifestyle"
-  },
-  {
-    id: 2,
-    title: "Mastering the Art of Photography",
-    excerpt: "Dive into the world of photography with expert tips on composition, lighting, and editing.",
-    author: "Ethan Lee",
-    date: "July 20, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCWA4PcllaaPM6IBu9Gu1K_k8PVzNLRcluueK8EvIcJPPzo7X4l5fEiKqqrGTJSxYNoroeHMmm-quTxEaoye-Jh737TJ27eEkr8JYTqhEzz4DFbnqX_lkykm7aGXoP2Pi3SziKxpAitVAnGis3qcl4CAAIHAz0uCwop_xOX8xVUW88z-DYPF05VjWamTsMQavi5MtVQOzBobEGMTu1OiWBKzJi0VdwfObNAQ8IwodBehNLDVuikhjGayaC6zOTYdskvKHx38qWkYOxr",
-    category: "photography"
-  },
-  {
-    id: 3,
-    title: "The Ultimate Guide to Home Workouts",
-    excerpt: "Stay fit and healthy with our comprehensive guide to effective home workouts.",
-    author: "Olivia Bennett",
-    date: "July 14, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDd5WWgKwx_tlqEvSmo06MJiEyvAdga8zvNBUF3bt-6GQ6Hr0uM3JKrmR4Mhtwe1lFN4y6t8azLuFiA6HcWJ_ZCnaXe--cIsVJe-GzuHINSy507Jdz0L67CWjh90ubrWjablMXDWbtvS_qx8h6mE55mdk_YED5MDeqia37bGYYPmOnvX8RvffsQvxQ0cijlMw0PfWR041CF-jDcrKpEMORVZAYbXousZBxaZKjyjOewgyaVMDYJbJ97AmD4bhtc-Ai1RrBHntDIjItw",
-    category: "fitness"
-  }
-]
 
 export default function AdminHome() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // LocalStorageから投稿を取得
+    // LocalStorageから投稿を取得（カスタム投稿のみ表示）
     const savedPosts = localStorage.getItem('posts')
     const customPosts = savedPosts ? JSON.parse(savedPosts) : []
     
-    // カスタム投稿を先頭に、デフォルト投稿を後に配置
-    const allPosts = [...customPosts, ...defaultPosts]
-    
     console.log('管理画面で読み込んだ投稿:', {
-      customPosts,
-      defaultPosts,
-      allPosts
+      customPosts
     })
     
-    setPosts(allPosts)
+    // CMS側はカスタム投稿のみ表示
+    setPosts(customPosts)
     setLoading(false)
   }, [])
 
   const handleDelete = (id: number) => {
-    // デフォルト記事は削除不可
-    if (defaultPosts.find(dp => dp.id === id)) {
-      alert('デフォルトの記事は削除できません。')
-      return
-    }
-    
     if (confirm('この記事を削除してもよろしいですか？')) {
       // LocalStorageから削除
       const savedPosts = localStorage.getItem('posts')
       const posts = savedPosts ? JSON.parse(savedPosts) : []
       const updatedPosts = posts.filter((post: Post) => post.id !== id)
       localStorage.setItem('posts', JSON.stringify(updatedPosts))
+      
+      console.log('記事を削除しました:', id)
+      console.log('削除後の投稿一覧:', updatedPosts)
       
       // 表示を更新
       setPosts(prevPosts => prevPosts.filter(post => post.id !== id))
@@ -138,9 +102,11 @@ export default function AdminHome() {
                   </td>
                   <td className="p-4">
                     <p className="text-[#121416] font-medium">{post.title}</p>
-                    <p className="text-[#6a7581] text-sm mt-1 line-clamp-2">
-                      {post.excerpt || post.content?.substring(0, 100) + '...'}
-                    </p>
+                    {post.excerpt && (
+                      <p className="text-[#6a7581] text-sm mt-1 line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                    )}
                   </td>
                   <td className="p-4">
                     <span className="text-[#6a7581] text-sm capitalize">
@@ -163,12 +129,7 @@ export default function AdminHome() {
                       </Link>
                       <button
                         onClick={() => handleDelete(post.id)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          defaultPosts.some(dp => dp.id === post.id)
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-red-600 hover:bg-red-50'
-                        }`}
-                        disabled={defaultPosts.some(dp => dp.id === post.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <TrashIcon className="w-5 h-5" />
                       </button>
