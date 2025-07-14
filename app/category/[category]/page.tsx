@@ -47,7 +47,7 @@ export default function CategoryPage() {
 
     // カテゴリーでフィルター
     const filteredPosts = allPostsData.filter(
-      post => post.category?.toLowerCase() === category.toLowerCase()
+      (post: Post) => post.category?.toLowerCase() === category.toLowerCase()
     )
     
     console.log('カテゴリーページで読み込んだ投稿:', {
