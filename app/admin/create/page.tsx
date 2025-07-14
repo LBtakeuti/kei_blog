@@ -5,12 +5,28 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 
+interface Post {
+  id: number
+  title: string
+  excerpt?: string
+  content?: string
+  author: string
+  date: string
+  image: string
+  category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
+}
+
 export default function CreatePost() {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [content, setContent] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [tags, setTags] = useState('')
+  const [isDraft, setIsDraft] = useState(false)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -18,42 +34,28 @@ export default function CreatePost() {
       setSelectedImage(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const base64String = reader.result as string
+        setImagePreview(base64String)
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveAsDraft: boolean = false) => {
     e.preventDefault()
     
-    let imageUrl = ''
+    // 画像はBase64形式で直接保存（デプロイ環境でも動作するように）
+    const imageUrl = imagePreview || ''
     
-    if (selectedImage) {
-      const formData = new FormData()
-      formData.append('file', selectedImage)
-      
-      try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          imageUrl = data.url
-        }
-      } catch (error) {
-        console.error('画像アップロードエラー:', error)
-      }
-    }
+    // タグを配列に変換
+    const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
     
-    console.log('投稿:', { title, category, content, imageUrl })
+    console.log('投稿:', { title, category, content, imageUrl, tags: tagArray, isDraft: saveAsDraft })
     
     // 投稿データを保存する処理をここに追加
     // localStorage に保存
     const posts = JSON.parse(localStorage.getItem('posts') || '[]')
-    const newPost = {
+    const newPost: Post = {
       id: Date.now(),
       title,
       category,
@@ -61,7 +63,10 @@ export default function CreatePost() {
       excerpt: content.substring(0, 150), // 自動で抜粋を生成
       image: imageUrl,
       author: '管理者',
-      date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })
+      date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
+      tags: tagArray,
+      isDraft: saveAsDraft,
+      isPublished: !saveAsDraft
     }
     posts.unshift(newPost)
     localStorage.setItem('posts', JSON.stringify(posts))
@@ -69,12 +74,13 @@ export default function CreatePost() {
     console.log('新しい投稿が作成されました:', newPost)
     console.log('現在の投稿一覧:', posts)
     
-    alert('投稿が作成されました！')
+    alert(saveAsDraft ? '下書きが保存されました！' : '投稿が作成されました！')
     
     // フォームをリセット
     setTitle('')
     setCategory('')
     setContent('')
+    setTags('')
     setSelectedImage(null)
     setImagePreview(null)
     
@@ -157,6 +163,17 @@ export default function CreatePost() {
           </div>
           <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
+              <p className="text-[#121416] text-base font-medium leading-normal pb-2">タグ</p>
+              <input
+                placeholder="タグをカンマ区切りで入力（例: 技術, プログラミング, JavaScript）"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-14 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
               <p className="text-[#121416] text-base font-medium leading-normal pb-2">コンテンツ</p>
               <textarea
                 placeholder="コンテンツを追加"
@@ -174,10 +191,17 @@ export default function CreatePost() {
               <span className="truncate">キャンセル</span>
             </Link>
             <button
+              type="button"
+              onClick={(e) => handleSubmit(e as any, true)}
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-300 text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
+            >
+              <span className="truncate">下書き保存</span>
+            </button>
+            <button
               type="submit"
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
             >
-              <span className="truncate">投稿</span>
+              <span className="truncate">公開</span>
             </button>
           </div>
         </form>

@@ -15,6 +15,9 @@ interface Post {
   date: string
   image: string
   category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
 }
 
 
@@ -66,13 +69,24 @@ export default function AdminHome() {
       <div className="layout-content-container flex flex-col max-w-[1200px] flex-1">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-[#121416] tracking-light text-[32px] font-bold leading-tight">記事管理</h1>
-          <Link
-            href="/admin/create"
-            className="flex items-center gap-2 px-4 py-2 bg-[#dce7f3] text-[#121416] rounded-xl hover:bg-[#c5d5e8] transition-colors"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span className="text-sm font-bold">新規投稿</span>
-          </Link>
+          <div className="flex gap-4">
+            <Link
+              href="/admin/create"
+              className="flex items-center gap-2 px-4 py-2 bg-[#dce7f3] text-[#121416] rounded-xl hover:bg-[#c5d5e8] transition-colors"
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span className="text-sm font-bold">新規投稿</span>
+            </Link>
+            <button
+              onClick={() => {
+                localStorage.removeItem('isAuthenticated')
+                window.location.href = '/admin/login'
+              }}
+              className="px-4 py-2 bg-gray-200 text-[#121416] rounded-xl hover:bg-gray-300 transition-colors"
+            >
+              <span className="text-sm font-bold">ログアウト</span>
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-4 mb-6">
@@ -87,6 +101,12 @@ export default function AdminHome() {
             className="px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
           >
             <span className="text-sm font-medium">Contactページ編集</span>
+          </Link>
+          <Link
+            href="/admin/comments"
+            className="px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
+          >
+            <span className="text-sm font-medium">コメント管理</span>
           </Link>
         </div>
 
@@ -107,14 +127,11 @@ export default function AdminHome() {
                 <tr key={post.id} className="border-b border-[#f1f2f4] hover:bg-gray-50">
                   <td className="p-4">
                     {post.image && (
-                      <div className="relative w-16 h-16">
-                        <Image
-                          src={post.image}
-                          alt={post.title}
-                          fill
-                          className="object-cover rounded"
-                        />
-                      </div>
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="w-16 h-16 object-contain rounded"
+                      />
                     )}
                   </td>
                   <td className="p-4">

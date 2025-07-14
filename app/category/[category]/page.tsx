@@ -15,6 +15,9 @@ interface Post {
   date: string
   image: string
   category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
 }
 
 
@@ -156,10 +159,11 @@ export default function CategoryPage() {
             {posts.map((post) => (
               <div key={post.id} className="p-4 @container">
                 <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
-                  <Link href={`/posts/${post.id}`} className="w-full">
-                    <div
-                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
-                      style={{ backgroundImage: `url("${post.image}")` }}
+                  <Link href={`/posts/${post.id}`} className="w-full @xl:w-1/2">
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-auto rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
                     />
                   </Link>
                   <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">

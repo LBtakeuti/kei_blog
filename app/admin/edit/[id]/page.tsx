@@ -15,6 +15,9 @@ interface Post {
   date: string
   image: string
   category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
 }
 
 
@@ -62,7 +65,8 @@ export default function EditPost() {
       setSelectedImage(file)
       const reader = new FileReader()
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
+        const base64String = reader.result as string
+        setImagePreview(base64String)
       }
       reader.readAsDataURL(file)
     }
@@ -73,26 +77,8 @@ export default function EditPost() {
     
     if (!post) return
     
-    let imageUrl = post.image
-    
-    if (selectedImage) {
-      const formData = new FormData()
-      formData.append('file', selectedImage)
-      
-      try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          imageUrl = data.url
-        }
-      } catch (error) {
-        console.error('画像アップロードエラー:', error)
-      }
-    }
+    // 画像はBase64形式で直接保存（デプロイ環境でも動作するように）
+    const imageUrl = imagePreview || post.image
     
     // 更新された投稿データ
     const updatedPost = {

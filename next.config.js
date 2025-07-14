@@ -9,6 +9,8 @@ const nextConfig = {
       },
     ],
     domains: ['localhost'],
+    // ローカルの画像を許可
+    unoptimized: true,
   },
 }
 

@@ -15,6 +15,9 @@ interface Post {
   date: string
   image: string
   category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
 }
 
 
@@ -30,21 +33,41 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isRecentPostsOpen, setIsRecentPostsOpen] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     const savedPosts = localStorage.getItem('posts')
-    const customPosts = savedPosts ? JSON.parse(savedPosts) : []
+    const allPosts = savedPosts ? JSON.parse(savedPosts) : []
+    
+    // 公開された記事のみを表示
+    const publishedPosts = allPosts.filter((post: Post) => post.isPublished !== false && !post.isDraft)
     
     console.log('ユーザーサイトで読み込んだ投稿:', {
-      customPosts
+      allPosts,
+      publishedPosts
     })
     
-    setPosts(customPosts)
+    setPosts(publishedPosts)
   }, [])
 
-  const filteredPosts = selectedCategory 
-    ? posts.filter(post => post.category?.toLowerCase() === selectedCategory.toLowerCase())
-    : posts
+  const filteredPosts = posts.filter(post => {
+    // カテゴリーフィルター
+    if (selectedCategory && post.category?.toLowerCase() !== selectedCategory.toLowerCase()) {
+      return false
+    }
+    
+    // 検索フィルター
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase()
+      return (
+        post.title.toLowerCase().includes(query) ||
+        post.content?.toLowerCase().includes(query) ||
+        post.excerpt?.toLowerCase().includes(query)
+      )
+    }
+    
+    return true
+  })
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
@@ -115,6 +138,32 @@ export default function Home() {
         <h2 className="text-[#121416] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
           {selectedCategory ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Posts` : 'Latest Posts'}
         </h2>
+        
+        {/* 検索バー */}
+        <div className="px-4 pb-4">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="記事を検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+            />
+            <svg
+              className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+        </div>
         {filteredPosts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-[#6a7581] text-lg">
@@ -135,10 +184,11 @@ export default function Home() {
           filteredPosts.map((post) => (
           <div key={post.id} className="p-4 @container">
             <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
-              <Link href={`/posts/${post.id}`} className="w-full">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
-                  style={{ backgroundImage: `url("${post.image}")` }}
+              <Link href={`/posts/${post.id}`} className="w-full @xl:w-1/2">
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="w-full h-auto rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
                 />
               </Link>
               <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">

@@ -16,8 +16,28 @@ const notoSans = Noto_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Bloggr",
-  description: "A modern blog platform",
+  title: {
+    default: 'My Blog',
+    template: '%s | My Blog'
+  },
+  description: 'Welcome to my blog where I share my thoughts and experiences',
+  openGraph: {
+    title: 'My Blog',
+    description: 'Welcome to my blog where I share my thoughts and experiences',
+    url: 'https://yourdomain.com',
+    siteName: 'My Blog',
+    locale: 'ja_JP',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'My Blog',
+    description: 'Welcome to my blog where I share my thoughts and experiences',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

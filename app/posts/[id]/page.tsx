@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import CommentSection from '@/components/CommentSection'
 
 interface Post {
   id: number
@@ -15,6 +16,9 @@ interface Post {
   date: string
   image: string
   category?: string
+  tags?: string[]
+  isDraft?: boolean
+  isPublished?: boolean
 }
 
 
@@ -77,13 +81,11 @@ export default function PostDetail() {
         </Link>
 
         {post.image && (
-          <div className="relative w-full aspect-video mb-8">
-            <Image
+          <div className="w-full mb-8">
+            <img
               src={post.image}
               alt={post.title}
-              fill
-              className="object-cover rounded-xl"
-              priority
+              className="w-full h-auto rounded-xl"
             />
           </div>
         )}
@@ -103,6 +105,18 @@ export default function PostDetail() {
               </>
             )}
           </div>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex gap-2 mt-4">
+              {post.tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </header>
 
         <div className="prose prose-lg max-w-none">
@@ -111,6 +125,8 @@ export default function PostDetail() {
           </div>
         </div>
 
+        <CommentSection postId={post.id} />
+        
         <div className="mt-12 pt-8 border-t border-[#f1f2f4]">
           <Link href="/" className="flex items-center gap-2 text-[#121416] hover:underline">
             <ArrowLeftIcon className="w-4 h-4" />
