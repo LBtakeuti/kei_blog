@@ -115,13 +115,13 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-[#121416]">画像レイアウト</h3>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h3 className="text-base sm:text-lg font-semibold text-[#121416]">画像レイアウト</h3>
         <button
           type="button"
           onClick={addNewLayout}
-          className="flex items-center gap-2 px-3 py-2 bg-[#dce7f3] text-[#121416] rounded-lg hover:bg-[#c5d5e8] transition-colors"
+          className="flex items-center gap-2 px-3 py-2 bg-[#dce7f3] text-[#121416] rounded-lg hover:bg-[#c5d5e8] transition-colors text-sm"
         >
           <PlusIcon className="w-4 h-4" />
           レイアウト追加
@@ -129,16 +129,16 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
       </div>
 
       {layouts.map((layout, layoutIndex) => (
-        <div key={layout.id} className="border border-[#dde0e3] rounded-xl p-4 bg-gray-50">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-4">
-              <span className="font-medium text-[#121416]">レイアウト {layoutIndex + 1}</span>
+        <div key={layout.id} className="border border-[#dde0e3] rounded-xl p-3 sm:p-4 bg-gray-50">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <span className="font-medium text-[#121416] text-sm sm:text-base">レイアウト {layoutIndex + 1}</span>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-[#6a7581]">列数:</label>
+                <label className="text-xs sm:text-sm text-[#6a7581]">列数:</label>
                 <select
                   value={layout.columns}
                   onChange={(e) => updateColumns(layout.id, parseInt(e.target.value) as 1 | 2 | 3 | 4)}
-                  className="px-2 py-1 border border-[#dde0e3] rounded text-sm"
+                  className="px-2 py-1 border border-[#dde0e3] rounded text-xs sm:text-sm"
                 >
                   <option value={1}>1列</option>
                   <option value={2}>2列</option>
@@ -162,7 +162,7 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
                 <img
                   src={image.src}
                   alt={image.alt}
-                  className="w-full h-32 object-cover rounded-lg"
+                  className="w-full h-24 sm:h-32 object-cover rounded-lg"
                 />
                 <button
                   type="button"

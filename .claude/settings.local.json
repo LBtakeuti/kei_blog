@@ -12,7 +12,9 @@
       "Bash(npm uninstall:*)",
       "Bash(killall:*)",
       "Bash(true)",
-      "Bash(npm start:*)"
+      "Bash(npm start:*)",
+      "Bash(git push:*)",
+      "Bash(npx vercel:*)"
     ],
     "deny": []
   }

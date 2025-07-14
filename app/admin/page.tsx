@@ -66,14 +66,14 @@ export default function AdminHome() {
 
 
   return (
-    <div className="px-6 flex flex-1 justify-center py-5">
+    <div className="px-4 sm:px-6 flex flex-1 justify-center py-5">
       <div className="layout-content-container flex flex-col max-w-[1200px] flex-1">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-[#121416] tracking-light text-[32px] font-bold leading-tight">記事管理</h1>
-          <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h1 className="text-[#121416] tracking-light text-2xl sm:text-3xl lg:text-[32px] font-bold leading-tight">記事管理</h1>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
             <Link
               href="/admin/create"
-              className="flex items-center gap-2 px-4 py-2 bg-[#dce7f3] text-[#121416] rounded-xl hover:bg-[#c5d5e8] transition-colors"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-[#dce7f3] text-[#121416] rounded-xl hover:bg-[#c5d5e8] transition-colors"
             >
               <PlusIcon className="w-5 h-5" />
               <span className="text-sm font-bold">新規投稿</span>
@@ -90,28 +90,76 @@ export default function AdminHome() {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
           <Link
             href="/admin/pages/about"
-            className="px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
           >
-            <span className="text-sm font-medium">Aboutページ編集</span>
+            <span className="text-xs sm:text-sm font-medium">Aboutページ編集</span>
           </Link>
           <Link
             href="/admin/pages/contact"
-            className="px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
           >
-            <span className="text-sm font-medium">Contactページ編集</span>
+            <span className="text-xs sm:text-sm font-medium">Contactページ編集</span>
           </Link>
           <Link
             href="/admin/comments"
-            className="px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
+            className="px-3 sm:px-4 py-2 bg-[#f1f2f4] text-[#121416] rounded-xl hover:bg-[#e5e7e9] transition-colors"
           >
-            <span className="text-sm font-medium">コメント管理</span>
+            <span className="text-xs sm:text-sm font-medium">コメント管理</span>
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* モバイル用カードレイアウト */}
+        <div className="block sm:hidden space-y-4">
+          {posts.map((post) => (
+            <div key={post.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+              <div className="flex gap-3">
+                {post.image && (
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[#121416] font-medium text-sm line-clamp-2">{post.title}</h3>
+                  {post.excerpt && (
+                    <p className="text-[#6a7581] text-xs mt-1 line-clamp-2">
+                      {post.excerpt}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2 text-xs text-[#6a7581]">
+                    <span>{post.category || 'なし'}</span>
+                    <span>•</span>
+                    <span>{post.author}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                <span className="text-xs text-[#6a7581]">{post.date}</span>
+                <div className="flex gap-2">
+                  <Link
+                    href={`/admin/edit/${post.id}`}
+                    className="p-2 text-[#121416] hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* デスクトップ用テーブルレイアウト */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
               <tr className="border-b border-[#f1f2f4]">

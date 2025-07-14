@@ -95,28 +95,28 @@ export default function CreatePost() {
   }
 
   return (
-    <div className="px-40 flex flex-1 justify-center py-5">
+    <div className="px-4 sm:px-6 lg:px-8 flex flex-1 justify-center py-5">
       <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
         <div className="flex flex-wrap justify-between gap-3 p-4">
-          <p className="text-[#121416] tracking-light text-[32px] font-bold leading-tight min-w-72">新規投稿</p>
+          <p className="text-[#121416] tracking-light text-xl sm:text-2xl lg:text-[32px] font-bold leading-tight">新規投稿</p>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+          <div className="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
-              <p className="text-[#121416] text-base font-medium leading-normal pb-2">タイトル</p>
+              <p className="text-[#121416] text-sm sm:text-base font-medium leading-normal pb-2">タイトル</p>
               <input
                 placeholder="タイトルを追加"
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-14 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-12 sm:h-14 placeholder:text-[#6a7581] p-[15px] text-sm sm:text-base font-normal leading-normal"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </label>
           </div>
-          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+          <div className="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
-              <p className="text-[#121416] text-base font-medium leading-normal pb-2">カテゴリ</p>
+              <p className="text-[#121416] text-sm sm:text-base font-medium leading-normal pb-2">カテゴリ</p>
               <select
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-14 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal appearance-none"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-12 sm:h-14 placeholder:text-[#6a7581] p-[15px] text-sm sm:text-base font-normal leading-normal appearance-none"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24px' height='24px' fill='rgb(106,117,129)' viewBox='0 0 256 256'%3e%3cpath d='M181.66,170.34a8,8,0,0,1,0,11.32l-48,48a8,8,0,0,1-11.32,0l-48-48a8,8,0,0,1,11.32-11.32L128,212.69l42.34-42.35A8,8,0,0,1,181.66,170.34Zm-96-84.68L128,43.31l42.34,42.35a8,8,0,0,0,11.32-11.32l-48-48a8,8,0,0,0-11.32,0l-48,48A8,8,0,0,0,85.66,85.66Z'%3e%3c/path%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
@@ -133,9 +133,9 @@ export default function CreatePost() {
               </select>
             </label>
           </div>
-          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+          <div className="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
-              <p className="text-[#121416] text-base font-medium leading-normal pb-2">画像</p>
+              <p className="text-[#121416] text-sm sm:text-base font-medium leading-normal pb-2">画像</p>
               <div className="relative">
                 <input
                   type="file"
@@ -146,7 +146,7 @@ export default function CreatePost() {
                 />
                 <label
                   htmlFor="image-upload"
-                  className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-[#dde0e3] rounded-xl cursor-pointer hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center w-full h-40 sm:h-48 border-2 border-dashed border-[#dde0e3] rounded-xl cursor-pointer hover:bg-gray-50"
                 >
                   {imagePreview ? (
                     <div className="relative w-full h-full">
@@ -159,31 +159,31 @@ export default function CreatePost() {
                     </div>
                   ) : (
                     <>
-                      <PhotoIcon className="w-12 h-12 text-gray-400" />
-                      <p className="mt-2 text-sm text-gray-600">画像をアップロード</p>
+                      <PhotoIcon className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+                      <p className="mt-2 text-xs sm:text-sm text-gray-600">画像をアップロード</p>
                     </>
                   )}
                 </label>
               </div>
             </label>
           </div>
-          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+          <div className="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
-              <p className="text-[#121416] text-base font-medium leading-normal pb-2">タグ</p>
+              <p className="text-[#121416] text-sm sm:text-base font-medium leading-normal pb-2">タグ</p>
               <input
                 placeholder="タグをカンマ区切りで入力（例: 技術, プログラミング, JavaScript）"
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-14 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-12 sm:h-14 placeholder:text-[#6a7581] p-[15px] text-sm sm:text-base font-normal leading-normal"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
               />
             </label>
           </div>
-          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+          <div className="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
             <label className="flex flex-col min-w-40 flex-1">
-              <p className="text-[#121416] text-base font-medium leading-normal pb-2">コンテンツ</p>
+              <p className="text-[#121416] text-sm sm:text-base font-medium leading-normal pb-2">コンテンツ</p>
               <textarea
                 placeholder="コンテンツを追加"
-                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] min-h-36 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] min-h-32 sm:min-h-36 placeholder:text-[#6a7581] p-[15px] text-sm sm:text-base font-normal leading-normal"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
@@ -195,23 +195,23 @@ export default function CreatePost() {
               onLayoutsChange={setImageLayouts} 
             />
           </div>
-          <div className="flex px-4 py-3 justify-end gap-3">
+          <div className="flex flex-col sm:flex-row px-4 py-3 justify-end gap-3">
             <Link
               href="/admin"
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#f1f2f4] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
+              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#f1f2f4] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
             >
               <span className="truncate">キャンセル</span>
             </Link>
             <button
               type="button"
               onClick={(e) => handleSubmit(e as any, true)}
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-300 text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
+              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-300 text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
             >
               <span className="truncate">下書き保存</span>
             </button>
             <button
               type="submit"
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
+              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
             >
               <span className="truncate">公開</span>
             </button>

@@ -71,8 +71,8 @@ export default function Home() {
   })
 
   return (
-    <div className="gap-1 px-6 flex flex-1 justify-center py-5">
-      <div className="layout-content-container flex flex-col w-80">
+    <div className="flex flex-col lg:flex-row gap-4 px-4 sm:px-6 justify-center py-5">
+      <div className="layout-content-container flex flex-col w-full lg:w-80 order-2 lg:order-1">
         <div className="px-4 pt-4">
           <button
             onClick={() => setIsRecentPostsOpen(!isRecentPostsOpen)}
@@ -92,7 +92,7 @@ export default function Home() {
                   href={`/posts/${post.id}`} 
                   className="flex items-center gap-4 w-full px-2 py-3 rounded bg-white hover:bg-gray-50"
                 >
-                  <p className="text-[#121416] text-base font-normal leading-normal flex-1 truncate">{post.title}</p>
+                  <p className="text-[#121416] text-sm sm:text-base font-normal leading-normal flex-1 truncate">{post.title}</p>
                 </Link>
               ))}
             </div>
@@ -135,8 +135,8 @@ export default function Home() {
           )}
         </div>
       </div>
-      <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-        <h2 className="text-[#121416] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
+      <div className="layout-content-container flex flex-col max-w-[960px] flex-1 order-1 lg:order-2">
+        <h2 className="text-[#121416] tracking-light text-xl sm:text-2xl lg:text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
           {selectedCategory ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Posts` : 'Latest Posts'}
         </h2>
         
@@ -148,7 +148,7 @@ export default function Home() {
               placeholder="記事を検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 text-base"
             />
             <svg
               className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
@@ -183,26 +183,36 @@ export default function Home() {
           </div>
         ) : (
           filteredPosts.map((post) => (
-          <div key={post.id} className="p-4 @container">
-            <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
-              <Link href={`/posts/${post.id}`} className="w-full @xl:w-1/2">
+          <div key={post.id} className="p-4">
+            <div className="flex flex-col lg:flex-row items-stretch justify-start rounded-xl lg:items-start bg-white shadow-sm border border-gray-100">
+              <Link href={`/posts/${post.id}`} className="w-full lg:w-1/2">
                 <img
                   src={post.image}
                   alt={post.title}
-                  className="w-full h-auto rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
+                  className="w-full h-48 sm:h-56 lg:h-auto object-cover rounded-t-xl lg:rounded-l-xl lg:rounded-t-none hover:opacity-90 transition-opacity cursor-pointer"
                 />
               </Link>
-              <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+              <div className="flex w-full min-w-0 grow flex-col items-stretch justify-center gap-2 p-4 lg:p-6">
                 <Link href={`/posts/${post.id}`}>
-                  <p className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em] hover:underline cursor-pointer">{post.title}</p>
+                  <h3 className="text-[#121416] text-lg sm:text-xl font-bold leading-tight tracking-[-0.015em] hover:underline cursor-pointer line-clamp-2">{post.title}</h3>
                 </Link>
-                <div className="flex items-end gap-3 justify-between">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6a7581] text-base font-normal leading-normal">
-                      {post.excerpt || post.content?.substring(0, 150) + '...'}
-                    </p>
-                    <p className="text-[#6a7581] text-base font-normal leading-normal">By {post.author} | Published on {post.date}</p>
-                  </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-[#6a7581] text-sm sm:text-base font-normal leading-normal line-clamp-3">
+                    {post.excerpt || post.content?.substring(0, 150) + '...'}
+                  </p>
+                  <p className="text-[#6a7581] text-xs sm:text-sm font-normal leading-normal">By {post.author} | {post.date}</p>
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex gap-1 mt-2 flex-wrap">
+                      {post.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

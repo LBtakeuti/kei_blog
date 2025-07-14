@@ -41,19 +41,19 @@ export default function AboutPage() {
   }
 
   return (
-    <div className="px-6 flex flex-1 justify-center py-5">
+    <div className="px-4 sm:px-6 lg:px-8 flex flex-1 justify-center py-5">
       <div className="layout-content-container flex flex-col max-w-[800px] flex-1">
         <Link href="/" className="flex items-center gap-2 text-[#6a7581] hover:text-[#121416] mb-6">
           <ArrowLeftIcon className="w-4 h-4" />
           <span className="text-sm">ホームに戻る</span>
         </Link>
 
-        <h1 className="text-[#121416] text-4xl font-bold leading-tight tracking-[-0.015em] mb-8">
+        <h1 className="text-[#121416] text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight tracking-[-0.015em] mb-6 sm:mb-8">
           {content.title}
         </h1>
 
-        <div className="prose prose-lg max-w-none">
-          <div className="text-[#121416] text-base leading-relaxed whitespace-pre-wrap">
+        <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+          <div className="text-[#121416] text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
             {content.content}
           </div>
         </div>
