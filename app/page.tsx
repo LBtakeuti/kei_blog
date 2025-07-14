@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import React from 'react'
 
 interface Post {
   id: number
@@ -16,41 +17,7 @@ interface Post {
   category?: string
 }
 
-const defaultPosts: Post[] = [
-  {
-    id: 1,
-    title: "The Future of Sustainable Living",
-    excerpt: "Explore innovative approaches to eco-friendly living, from renewable energy solutions to zero-waste lifestyles. Learn how small changes can make a big impact on our planet's health.",
-    author: "Emma Carter",
-    date: "July 26, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCffIFhoH1QgzKS_Wz05dELc07wG3C9MEMAOxshqVokSs53XjSiixUnrQmHngxMyZdArQDJHp1Q30NIuLyPF6256Y48JYRgpHes_fEx4OCICvucga_zej9-PJrDDWRnVUk7rF_8lP7gAEH4X1QsBVvTOacAVTPsuO29hGymYvhJR-G4n4tJOot9XQmNlOBiZb0oeCt41MSRIAB2-H2XcPEK21SWQ2_v7HaebFktfT9Y1Yj6CGuoF0iaL11u-9gD8CNAsRTdIE1T1oEG",
-    category: "lifestyle"
-  },
-  {
-    id: 2,
-    title: "Mastering the Art of Photography",
-    excerpt: "Dive into the world of photography with expert tips on composition, lighting, and editing. Whether you're a beginner or a seasoned pro, enhance your skills and capture stunning images.",
-    author: "Ethan Lee",
-    date: "July 20, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCWA4PcllaaPM6IBu9Gu1K_k8PVzNLRcluueK8EvIcJPPzo7X4l5fEiKqqrGTJSxYNoroeHMmm-quTxEaoye-Jh737TJ27eEkr8JYTqhEzz4DFbnqX_lkykm7aGXoP2Pi3SziKxpAitVAnGis3qcl4CAAIHAz0uCwop_xOX8xVUW88z-DYPF05VjWamTsMQavi5MtVQOzBobEGMTu1OiWBKzJi0VdwfObNAQ8IwodBehNLDVuikhjGayaC6zOTYdskvKHx38qWkYOxr",
-    category: "photography"
-  },
-  {
-    id: 3,
-    title: "The Ultimate Guide to Home Workouts",
-    excerpt: "Stay fit and healthy with our comprehensive guide to effective home workouts. Discover routines for all fitness levels, with no equipment needed. Get ready to sweat and achieve your fitness goals.",
-    author: "Olivia Bennett",
-    date: "July 14, 2024",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDd5WWgKwx_tlqEvSmo06MJiEyvAdga8zvNBUF3bt-6GQ6Hr0uM3JKrmR4Mhtwe1lFN4y6t8azLuFiA6HcWJ_ZCnaXe--cIsVJe-GzuHINSy507Jdz0L67CWjh90ubrWjablMXDWbtvS_qx8h6mE55mdk_YED5MDeqia37bGYYPmOnvX8RvffsQvxQ0cijlMw0PfWR041CF-jDcrKpEMORVZAYbXousZBxaZKjyjOewgyaVMDYJbJ97AmD4bhtc-Ai1RrBHntDIjItw",
-    category: "fitness"
-  }
-]
 
-const recentPosts = [
-  "The Future of Sustainable Living",
-  "Mastering the Art of Photography",
-  "The Ultimate Guide to Home Workouts"
-]
 
 const categories = [
   "Lifestyle",
@@ -59,32 +26,74 @@ const categories = [
 ]
 
 export default function Home() {
-  const [posts, setPosts] = useState(defaultPosts)
+  const [posts, setPosts] = useState<Post[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isRecentPostsOpen, setIsRecentPostsOpen] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const postsPerPage = 5
 
   useEffect(() => {
     const savedPosts = localStorage.getItem('posts')
     const customPosts = savedPosts ? JSON.parse(savedPosts) : []
     
-    // カスタム投稿を先頭に、デフォルト投稿を後に配置
-    const allPosts = [...customPosts, ...defaultPosts]
-    
     console.log('ユーザーサイトで読み込んだ投稿:', {
-      customPosts,
-      defaultPosts,
-      allPosts
+      customPosts
     })
     
-    setPosts(allPosts)
+    setPosts(customPosts)
   }, [])
 
   const filteredPosts = selectedCategory 
     ? posts.filter(post => post.category?.toLowerCase() === selectedCategory.toLowerCase())
     : posts
 
-  const displayPosts = filteredPosts.slice(0, 5) // 最新5件を表示
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedCategory])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
+  const indexOfLastPost = currentPage * postsPerPage
+  const indexOfFirstPost = indexOfLastPost - postsPerPage
+  const displayPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost)
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = []
+    const maxPagesToShow = 5
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i)
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i)
+        }
+        pageNumbers.push('...')
+        pageNumbers.push(totalPages)
+      } else if (currentPage >= totalPages - 2) {
+        pageNumbers.push(1)
+        pageNumbers.push('...')
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i)
+        }
+      } else {
+        pageNumbers.push(1)
+        pageNumbers.push('...')
+        pageNumbers.push(currentPage - 1)
+        pageNumbers.push(currentPage)
+        pageNumbers.push(currentPage + 1)
+        pageNumbers.push('...')
+        pageNumbers.push(totalPages)
+      }
+    }
+    
+    return pageNumbers
+  }
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
@@ -197,19 +206,46 @@ export default function Home() {
             </div>
           </div>
         )))}
-        <div className="flex items-center justify-center p-4">
-          <Link href="#" className="flex size-10 items-center justify-center">
-            <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
-          </Link>
-          <Link className="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-[#121416] rounded-full bg-[#f1f2f4]" href="#">1</Link>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">2</Link>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">3</Link>
-          <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">...</span>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">10</Link>
-          <Link href="#" className="flex size-10 items-center justify-center">
-            <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
-          </Link>
-        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center p-4">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
+            </button>
+            
+            {getPageNumbers().map((number, index) => (
+              <React.Fragment key={index}>
+                {number === '...' ? (
+                  <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setCurrentPage(number as number)}
+                    className={`text-sm leading-normal flex size-10 items-center justify-center rounded-full transition-colors ${
+                      currentPage === number 
+                        ? 'font-bold text-[#121416] bg-[#f1f2f4]' 
+                        : 'font-normal text-[#121416] hover:bg-gray-100'
+                    }`}
+                  >
+                    {number}
+                  </button>
+                )}
+              </React.Fragment>
+            ))}
+            
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
