@@ -12,7 +12,9 @@ interface Post {
   tags?: string[]
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const resolvedParams = await params
+  
   if (typeof window !== 'undefined') {
     return {}
   }
