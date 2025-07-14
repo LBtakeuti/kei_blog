@@ -59,15 +59,14 @@ export default function Home() {
   const indexOfFirstPost = indexOfLastPost - postsPerPage
   const displayPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost)
 
-  // Generate page numbers
+  // Generate page numbers - only if we have more than one page
   const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxPagesToShow = 5
-    
-    // If there's only 1 page or no pages, return early
     if (totalPages <= 1) {
       return []
     }
+    
+    const pageNumbers = []
+    const maxPagesToShow = 5
     
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
@@ -99,6 +98,15 @@ export default function Home() {
     
     return pageNumbers
   }
+  
+  console.log('Pagination Debug:', {
+    postsLength: filteredPosts.length,
+    postsPerPage,
+    totalPages,
+    shouldShowPagination: filteredPosts.length > postsPerPage,
+    posts: filteredPosts,
+    getPageNumbersResult: getPageNumbers()
+  })
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
@@ -211,7 +219,7 @@ export default function Home() {
             </div>
           </div>
         )))}
-{filteredPosts.length > postsPerPage && (
+{totalPages > 1 && filteredPosts.length > postsPerPage && (
           <div className="flex items-center justify-center p-4">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -221,7 +229,7 @@ export default function Home() {
               <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
             </button>
             
-            {totalPages > 1 ? getPageNumbers().map((number, index) => (
+            {getPageNumbers().map((number, index) => (
               <React.Fragment key={index}>
                 {number === '...' ? (
                   <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
@@ -240,7 +248,7 @@ export default function Home() {
                   </button>
                 )}
               </React.Fragment>
-            )) : null}
+            ))}
             
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
