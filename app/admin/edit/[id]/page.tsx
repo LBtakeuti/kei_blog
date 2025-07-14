@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { PhotoIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import ImageEditor from '@/components/ImageEditor'
+import { ImageLayout } from '@/types/image'
 
 interface Post {
   id: number
@@ -16,6 +18,7 @@ interface Post {
   image: string
   category?: string
   tags?: string[]
+  imageLayouts?: ImageLayout[]
   isDraft?: boolean
   isPublished?: boolean
 }
@@ -31,6 +34,8 @@ export default function EditPost() {
   const [content, setContent] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageLayouts, setImageLayouts] = useState<ImageLayout[]>([])
+  const [tags, setTags] = useState('')
   const [loading, setLoading] = useState(true)
   const [post, setPost] = useState<Post | null>(null)
 
@@ -50,6 +55,8 @@ export default function EditPost() {
         setCategory(savedPost.category || '')
         setContent(savedPost.content)
         setImagePreview(savedPost.image)
+        setImageLayouts(savedPost.imageLayouts || [])
+        setTags(savedPost.tags?.join(', ') || '')
         setLoading(false)
         return
       }
@@ -80,6 +87,9 @@ export default function EditPost() {
     // 画像はBase64形式で直接保存（デプロイ環境でも動作するように）
     const imageUrl = imagePreview || post.image
     
+    // タグを配列に変換
+    const tagArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+    
     // 更新された投稿データ
     const updatedPost = {
       ...post,
@@ -88,6 +98,8 @@ export default function EditPost() {
       content,
       excerpt: content.substring(0, 150), // 自動で抜粋を生成
       image: imageUrl,
+      imageLayouts,
+      tags: tagArray,
     }
     
     // LocalStorageを更新
@@ -224,6 +236,23 @@ export default function EditPost() {
                 required
               />
             </label>
+          </div>
+          <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
+            <label className="flex flex-col min-w-40 flex-1">
+              <p className="text-[#121416] text-base font-medium leading-normal pb-2">タグ</p>
+              <input
+                placeholder="タグをカンマ区切りで入力（例: 技術, プログラミング, JavaScript）"
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121416] focus:outline-0 focus:ring-0 border border-[#dde0e3] bg-white focus:border-[#dde0e3] h-14 placeholder:text-[#6a7581] p-[15px] text-base font-normal leading-normal"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="px-4 py-3">
+            <ImageEditor 
+              layouts={imageLayouts} 
+              onLayoutsChange={setImageLayouts} 
+            />
           </div>
           <div className="flex px-4 py-3 justify-end gap-3">
             <Link

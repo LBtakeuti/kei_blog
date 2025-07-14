@@ -6,6 +6,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import CommentSection from '@/components/CommentSection'
+import ImageLayoutRenderer from '@/components/ImageLayoutRenderer'
+import { ImageLayout } from '@/types/image'
 
 interface Post {
   id: number
@@ -17,6 +19,7 @@ interface Post {
   image: string
   category?: string
   tags?: string[]
+  imageLayouts?: ImageLayout[]
   isDraft?: boolean
   isPublished?: boolean
 }
@@ -123,6 +126,12 @@ export default function PostDetail() {
           <div className="text-[#121416] text-base leading-relaxed whitespace-pre-wrap">
             {post.content}
           </div>
+          
+          {post.imageLayouts && post.imageLayouts.length > 0 && (
+            <div className="mt-8">
+              <ImageLayoutRenderer layouts={post.imageLayouts} />
+            </div>
+          )}
         </div>
 
         <CommentSection postId={post.id} />

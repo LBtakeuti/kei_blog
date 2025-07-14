@@ -4,6 +4,8 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PhotoIcon } from '@heroicons/react/24/outline'
+import ImageEditor from '@/components/ImageEditor'
+import { ImageLayout } from '@/types/image'
 
 interface Post {
   id: number
@@ -13,6 +15,7 @@ interface Post {
   author: string
   date: string
   image: string
+  imageLayouts?: ImageLayout[]
   category?: string
   tags?: string[]
   isDraft?: boolean
@@ -25,6 +28,7 @@ export default function CreatePost() {
   const [content, setContent] = useState('')
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageLayouts, setImageLayouts] = useState<ImageLayout[]>([])
   const [tags, setTags] = useState('')
   const [isDraft, setIsDraft] = useState(false)
 
@@ -62,6 +66,7 @@ export default function CreatePost() {
       content,
       excerpt: content.substring(0, 150), // 自動で抜粋を生成
       image: imageUrl,
+      imageLayouts,
       author: '管理者',
       date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
       tags: tagArray,
@@ -83,6 +88,7 @@ export default function CreatePost() {
     setTags('')
     setSelectedImage(null)
     setImagePreview(null)
+    setImageLayouts([])
     
     // 管理画面にリダイレクト
     window.location.href = '/admin'
@@ -182,6 +188,12 @@ export default function CreatePost() {
                 onChange={(e) => setContent(e.target.value)}
               />
             </label>
+          </div>
+          <div className="px-4 py-3">
+            <ImageEditor 
+              layouts={imageLayouts} 
+              onLayoutsChange={setImageLayouts} 
+            />
           </div>
           <div className="flex px-4 py-3 justify-end gap-3">
             <Link

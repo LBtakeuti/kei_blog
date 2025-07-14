@@ -16,6 +16,7 @@ interface Post {
   image: string
   category?: string
   tags?: string[]
+  imageLayouts?: any[]
   isDraft?: boolean
   isPublished?: boolean
 }
