@@ -66,10 +66,18 @@ export default function Home() {
 
   useEffect(() => {
     const savedPosts = localStorage.getItem('posts')
-    if (savedPosts) {
-      const parsedPosts = JSON.parse(savedPosts)
-      setPosts([...parsedPosts, ...defaultPosts])
-    }
+    const customPosts = savedPosts ? JSON.parse(savedPosts) : []
+    
+    // カスタム投稿を先頭に、デフォルト投稿を後に配置
+    const allPosts = [...customPosts, ...defaultPosts]
+    
+    console.log('ユーザーサイトで読み込んだ投稿:', {
+      customPosts,
+      defaultPosts,
+      allPosts
+    })
+    
+    setPosts(allPosts)
   }, [])
 
   const filteredPosts = selectedCategory 

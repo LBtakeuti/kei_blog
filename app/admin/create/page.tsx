@@ -51,19 +51,25 @@ export default function CreatePost() {
     console.log('投稿:', { title, category, content, imageUrl })
     
     // 投稿データを保存する処理をここに追加
-    // 今は localStorage に保存
+    // localStorage に保存
     const posts = JSON.parse(localStorage.getItem('posts') || '[]')
     const newPost = {
       id: Date.now(),
       title,
       category,
       content,
+      excerpt: content.substring(0, 150), // 自動で抜粋を生成
       image: imageUrl,
       author: '管理者',
       date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })
     }
     posts.unshift(newPost)
     localStorage.setItem('posts', JSON.stringify(posts))
+    
+    console.log('新しい投稿が作成されました:', newPost)
+    console.log('現在の投稿一覧:', posts)
+    
+    alert('投稿が作成されました！')
     
     // フォームをリセット
     setTitle('')
@@ -72,7 +78,7 @@ export default function CreatePost() {
     setSelectedImage(null)
     setImagePreview(null)
     
-    alert('投稿が作成されました！')
+    // 管理画面にリダイレクト
     window.location.href = '/admin'
   }
 

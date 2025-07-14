@@ -157,6 +157,7 @@ export default function EditPost() {
       title,
       category,
       content,
+      excerpt: content.substring(0, 150), // 自動で抜粋を生成
       image: imageUrl,
     }
     
@@ -170,20 +171,25 @@ export default function EditPost() {
       const newPost = {
         ...updatedPost,
         id: Date.now(),
+        author: post.author,
         date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })
       }
-      posts.push(newPost)
+      posts.unshift(newPost) // 新しい投稿は先頭に追加
+      console.log('デフォルト記事を編集して新しい投稿を作成:', newPost)
     } else {
       // 既存のカスタム投稿の場合は更新
       const existingIndex = posts.findIndex((p: Post) => p.id === post.id)
       if (existingIndex !== -1) {
         posts[existingIndex] = updatedPost
+        console.log('既存の投稿を更新:', updatedPost)
       } else {
-        posts.push(updatedPost)
+        posts.unshift(updatedPost)
+        console.log('新しい投稿として追加:', updatedPost)
       }
     }
     
     localStorage.setItem('posts', JSON.stringify(posts))
+    console.log('現在の投稿一覧:', posts)
     
     alert('記事が更新されました！')
     router.push('/admin')

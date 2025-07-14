@@ -64,14 +64,12 @@ export default function CategoryPage() {
   useEffect(() => {
     if (!category) return
 
-    const allPostsData = [...defaultPosts]
-    
     // LocalStorageから投稿を取得
     const savedPosts = localStorage.getItem('posts')
-    if (savedPosts) {
-      const parsedPosts = JSON.parse(savedPosts)
-      allPostsData.push(...parsedPosts)
-    }
+    const customPosts = savedPosts ? JSON.parse(savedPosts) : []
+    
+    // カスタム投稿を先頭に、デフォルト投稿を後に配置
+    const allPostsData = [...customPosts, ...defaultPosts]
 
     setAllPosts(allPostsData)
 
@@ -79,6 +77,14 @@ export default function CategoryPage() {
     const filteredPosts = allPostsData.filter(
       post => post.category?.toLowerCase() === category.toLowerCase()
     )
+    
+    console.log('カテゴリーページで読み込んだ投稿:', {
+      category,
+      customPosts,
+      defaultPosts,
+      allPostsData,
+      filteredPosts
+    })
     
     setPosts(filteredPosts)
     setLoading(false)

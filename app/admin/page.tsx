@@ -53,8 +53,18 @@ export default function AdminHome() {
   useEffect(() => {
     // LocalStorageから投稿を取得
     const savedPosts = localStorage.getItem('posts')
-    const allPosts = savedPosts ? JSON.parse(savedPosts) : []
-    setPosts([...allPosts, ...defaultPosts])
+    const customPosts = savedPosts ? JSON.parse(savedPosts) : []
+    
+    // カスタム投稿を先頭に、デフォルト投稿を後に配置
+    const allPosts = [...customPosts, ...defaultPosts]
+    
+    console.log('管理画面で読み込んだ投稿:', {
+      customPosts,
+      defaultPosts,
+      allPosts
+    })
+    
+    setPosts(allPosts)
     setLoading(false)
   }, [])
 

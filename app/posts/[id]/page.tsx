@@ -77,24 +77,31 @@ export default function PostDetail() {
   useEffect(() => {
     if (!id) return
 
-    // まずデフォルトの投稿から探す
-    const defaultPost = defaultPosts.find(p => p.id === parseInt(id as string))
+    const postId = parseInt(id as string)
+    
+    // まずlocalStorageから探す（カスタム投稿を優先）
+    const savedPosts = localStorage.getItem('posts')
+    if (savedPosts) {
+      const customPosts = JSON.parse(savedPosts)
+      const customPost = customPosts.find((p: Post) => p.id === postId)
+      if (customPost) {
+        console.log('カスタム投稿を表示:', customPost)
+        setPost(customPost)
+        setLoading(false)
+        return
+      }
+    }
+
+    // カスタム投稿にない場合、デフォルトの投稿から探す
+    const defaultPost = defaultPosts.find(p => p.id === postId)
     if (defaultPost) {
+      console.log('デフォルト投稿を表示:', defaultPost)
       setPost(defaultPost)
       setLoading(false)
       return
     }
-
-    // 次にlocalStorageから探す
-    const savedPosts = localStorage.getItem('posts')
-    if (savedPosts) {
-      const posts = JSON.parse(savedPosts)
-      const savedPost = posts.find((p: Post) => p.id === parseInt(id as string))
-      if (savedPost) {
-        setPost(savedPost)
-      }
-    }
     
+    console.log('投稿が見つかりませんでした:', postId)
     setLoading(false)
   }, [id])
 
