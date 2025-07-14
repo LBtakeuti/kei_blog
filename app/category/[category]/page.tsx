@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 
 interface Post {
   id: number
@@ -46,41 +46,62 @@ const defaultPosts: Post[] = [
   }
 ]
 
-const recentPosts = [
-  "The Future of Sustainable Living",
-  "Mastering the Art of Photography",
-  "The Ultimate Guide to Home Workouts"
-]
-
 const categories = [
   "Lifestyle",
   "Photography",
   "Fitness"
 ]
 
-export default function Home() {
-  const [posts, setPosts] = useState(defaultPosts)
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+export default function CategoryPage() {
+  const params = useParams()
+  const category = params?.category as string
+  const [posts, setPosts] = useState<Post[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isCategoryOpen, setIsCategoryOpen] = useState(true)
   const [isRecentPostsOpen, setIsRecentPostsOpen] = useState(true)
+  const [allPosts, setAllPosts] = useState<Post[]>([])
 
   useEffect(() => {
+    if (!category) return
+
+    const allPostsData = [...defaultPosts]
+    
+    // LocalStorageから投稿を取得
     const savedPosts = localStorage.getItem('posts')
     if (savedPosts) {
       const parsedPosts = JSON.parse(savedPosts)
-      setPosts([...parsedPosts, ...defaultPosts])
+      allPostsData.push(...parsedPosts)
     }
-  }, [])
 
-  const filteredPosts = selectedCategory 
-    ? posts.filter(post => post.category?.toLowerCase() === selectedCategory.toLowerCase())
-    : posts
+    setAllPosts(allPostsData)
 
-  const displayPosts = filteredPosts.slice(0, 5) // 最新5件を表示
+    // カテゴリーでフィルター
+    const filteredPosts = allPostsData.filter(
+      post => post.category?.toLowerCase() === category.toLowerCase()
+    )
+    
+    setPosts(filteredPosts)
+    setLoading(false)
+  }, [category])
+
+  if (loading) {
+    return (
+      <div className="flex flex-1 justify-center items-center py-20">
+        <p className="text-[#6a7581] text-lg">読み込み中...</p>
+      </div>
+    )
+  }
+
+  const displayCategory = category.charAt(0).toUpperCase() + category.slice(1)
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
       <div className="layout-content-container flex flex-col w-80">
+        <Link href="/" className="flex items-center gap-2 text-[#6a7581] hover:text-[#121416] mb-4 px-4">
+          <ArrowLeftIcon className="w-4 h-4" />
+          <span className="text-sm">ホームに戻る</span>
+        </Link>
+        
         <div className="px-4 pt-4">
           <button
             onClick={() => setIsRecentPostsOpen(!isRecentPostsOpen)}
@@ -94,7 +115,7 @@ export default function Home() {
           
           {isRecentPostsOpen && (
             <div className="space-y-1">
-              {posts.slice(0, 3).map((post) => (
+              {allPosts.slice(0, 3).map((post) => (
                 <Link 
                   key={post.id} 
                   href={`/posts/${post.id}`} 
@@ -120,88 +141,78 @@ export default function Home() {
           
           {isCategoryOpen && (
             <div className="space-y-1">
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className={`flex items-center gap-4 w-full px-2 py-3 rounded hover:bg-gray-50 ${
-                  selectedCategory === null ? 'bg-[#f1f2f4]' : 'bg-white'
-                }`}
-              >
+              <Link href="/" className="flex items-center gap-4 w-full px-2 py-3 rounded bg-white hover:bg-gray-50">
                 <p className="text-[#121416] text-base font-normal leading-normal flex-1 text-left">All Categories</p>
-              </button>
-              {categories.map((category, index) => (
-                <button
+              </Link>
+              {categories.map((cat, index) => (
+                <Link
                   key={index}
-                  onClick={() => setSelectedCategory(category.toLowerCase())}
+                  href={`/category/${cat.toLowerCase()}`}
                   className={`flex items-center gap-4 w-full px-2 py-3 rounded hover:bg-gray-50 ${
-                    selectedCategory === category.toLowerCase() ? 'bg-[#f1f2f4]' : 'bg-white'
+                    cat.toLowerCase() === category.toLowerCase() ? 'bg-[#f1f2f4]' : 'bg-white'
                   }`}
                 >
-                  <p className="text-[#121416] text-base font-normal leading-normal flex-1 text-left">{category}</p>
-                </button>
+                  <p className="text-[#121416] text-base font-normal leading-normal flex-1 text-left">{cat}</p>
+                </Link>
               ))}
             </div>
           )}
         </div>
       </div>
+      
       <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
         <h2 className="text-[#121416] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
-          {selectedCategory ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Posts` : 'Latest Posts'}
+          {displayCategory} Posts
         </h2>
-        {displayPosts.length === 0 ? (
+        
+        {posts.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-[#6a7581] text-lg">
-              {selectedCategory 
-                ? `No posts found in ${selectedCategory} category.` 
-                : 'No posts found.'}
+            <p className="text-[#6a7581] text-lg mb-4">
+              No posts found in {displayCategory} category.
             </p>
-            {selectedCategory && (
-              <button
-                onClick={() => setSelectedCategory(null)}
-                className="mt-4 text-[#121416] hover:underline"
-              >
-                View all posts
-              </button>
-            )}
+            <Link href="/" className="text-[#121416] hover:underline">
+              View all posts
+            </Link>
           </div>
         ) : (
-          displayPosts.map((post) => (
-          <div key={post.id} className="p-4 @container">
-            <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
-              <Link href={`/posts/${post.id}`} className="w-full">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
-                  style={{ backgroundImage: `url("${post.image}")` }}
-                />
-              </Link>
-              <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
-                <Link href={`/posts/${post.id}`}>
-                  <p className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em] hover:underline cursor-pointer">{post.title}</p>
-                </Link>
-                <div className="flex items-end gap-3 justify-between">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6a7581] text-base font-normal leading-normal">
-                      {post.excerpt || post.content?.substring(0, 150) + '...'}
-                    </p>
-                    <p className="text-[#6a7581] text-base font-normal leading-normal">By {post.author} | Published on {post.date}</p>
+          <>
+            {posts.map((post) => (
+              <div key={post.id} className="p-4 @container">
+                <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
+                  <Link href={`/posts/${post.id}`} className="w-full">
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl hover:opacity-90 transition-opacity cursor-pointer"
+                      style={{ backgroundImage: `url("${post.image}")` }}
+                    />
+                  </Link>
+                  <div className="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 @xl:px-4">
+                    <Link href={`/posts/${post.id}`}>
+                      <p className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em] hover:underline cursor-pointer">{post.title}</p>
+                    </Link>
+                    <div className="flex items-end gap-3 justify-between">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-[#6a7581] text-base font-normal leading-normal">
+                          {post.excerpt || post.content?.substring(0, 150) + '...'}
+                        </p>
+                        <p className="text-[#6a7581] text-base font-normal leading-normal">By {post.author} | Published on {post.date}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            ))}
+            
+            <div className="flex items-center justify-center p-4">
+              <Link href="#" className="flex size-10 items-center justify-center">
+                <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
+              </Link>
+              <Link className="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-[#121416] rounded-full bg-[#f1f2f4]" href="#">1</Link>
+              <Link href="#" className="flex size-10 items-center justify-center">
+                <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
+              </Link>
             </div>
-          </div>
-        )))}
-        <div className="flex items-center justify-center p-4">
-          <Link href="#" className="flex size-10 items-center justify-center">
-            <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
-          </Link>
-          <Link className="text-sm font-bold leading-normal tracking-[0.015em] flex size-10 items-center justify-center text-[#121416] rounded-full bg-[#f1f2f4]" href="#">1</Link>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">2</Link>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">3</Link>
-          <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">...</span>
-          <Link className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full" href="#">10</Link>
-          <Link href="#" className="flex size-10 items-center justify-center">
-            <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
-          </Link>
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
