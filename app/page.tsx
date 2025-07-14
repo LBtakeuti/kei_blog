@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 import React from 'react'
 
@@ -30,8 +30,6 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [isRecentPostsOpen, setIsRecentPostsOpen] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const postsPerPage = 5
 
   useEffect(() => {
     const savedPosts = localStorage.getItem('posts')
@@ -47,66 +45,6 @@ export default function Home() {
   const filteredPosts = selectedCategory 
     ? posts.filter(post => post.category?.toLowerCase() === selectedCategory.toLowerCase())
     : posts
-
-  // Reset to page 1 when category changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedCategory])
-
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
-  const indexOfLastPost = currentPage * postsPerPage
-  const indexOfFirstPost = indexOfLastPost - postsPerPage
-  const displayPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost)
-
-  // Generate page numbers - only if we have more than one page
-  const getPageNumbers = () => {
-    if (totalPages <= 1) {
-      return []
-    }
-    
-    const pageNumbers = []
-    const maxPagesToShow = 5
-    
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pageNumbers.push(i)
-        }
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pageNumbers.push(i)
-        }
-      } else {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        pageNumbers.push(currentPage - 1)
-        pageNumbers.push(currentPage)
-        pageNumbers.push(currentPage + 1)
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      }
-    }
-    
-    return pageNumbers
-  }
-  
-  console.log('Pagination Debug:', {
-    postsLength: filteredPosts.length,
-    postsPerPage,
-    totalPages,
-    shouldShowPagination: filteredPosts.length > postsPerPage,
-    posts: filteredPosts,
-    getPageNumbersResult: getPageNumbers()
-  })
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
@@ -177,7 +115,7 @@ export default function Home() {
         <h2 className="text-[#121416] tracking-light text-[28px] font-bold leading-tight px-4 text-center pb-3 pt-5">
           {selectedCategory ? `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Posts` : 'Latest Posts'}
         </h2>
-        {displayPosts.length === 0 ? (
+        {filteredPosts.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-[#6a7581] text-lg">
               {selectedCategory 
@@ -194,7 +132,7 @@ export default function Home() {
             )}
           </div>
         ) : (
-          displayPosts.map((post) => (
+          filteredPosts.map((post) => (
           <div key={post.id} className="p-4 @container">
             <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
               <Link href={`/posts/${post.id}`} className="w-full">
@@ -219,46 +157,6 @@ export default function Home() {
             </div>
           </div>
         )))}
-{totalPages > 1 && filteredPosts.length > postsPerPage && (
-          <div className="flex items-center justify-center p-4">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
-            </button>
-            
-            {getPageNumbers().map((number, index) => (
-              <React.Fragment key={index}>
-                {number === '...' ? (
-                  <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setCurrentPage(number as number)}
-                    className={`text-sm leading-normal flex size-10 items-center justify-center rounded-full transition-colors ${
-                      currentPage === number 
-                        ? 'font-bold text-[#121416] bg-[#f1f2f4]' 
-                        : 'font-normal text-[#121416] hover:bg-gray-100'
-                    }`}
-                  >
-                    {number}
-                  </button>
-                )}
-              </React.Fragment>
-            ))}
-            
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeftIcon, ChevronRightIcon, ArrowLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { ArrowLeftIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
 interface Post {
@@ -32,8 +32,6 @@ export default function CategoryPage() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(true)
   const [isRecentPostsOpen, setIsRecentPostsOpen] = useState(true)
   const [allPosts, setAllPosts] = useState<Post[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const postsPerPage = 5
 
   useEffect(() => {
     if (!category) return
@@ -72,53 +70,6 @@ export default function CategoryPage() {
   }
 
   const displayCategory = category.charAt(0).toUpperCase() + category.slice(1)
-
-  // Calculate pagination
-  const totalPages = Math.ceil(posts.length / postsPerPage)
-  const indexOfLastPost = currentPage * postsPerPage
-  const indexOfFirstPost = indexOfLastPost - postsPerPage
-  const displayPosts = posts.slice(indexOfFirstPost, indexOfLastPost)
-
-  // Generate page numbers
-  const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxPagesToShow = 5
-    
-    // If there's only 1 page or no pages, return early
-    if (totalPages <= 1) {
-      return []
-    }
-    
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pageNumbers.push(i)
-        }
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pageNumbers.push(i)
-        }
-      } else {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        pageNumbers.push(currentPage - 1)
-        pageNumbers.push(currentPage)
-        pageNumbers.push(currentPage + 1)
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      }
-    }
-    
-    return pageNumbers
-  }
 
   return (
     <div className="gap-1 px-6 flex flex-1 justify-center py-5">
@@ -202,7 +153,7 @@ export default function CategoryPage() {
           </div>
         ) : (
           <>
-            {displayPosts.map((post) => (
+            {posts.map((post) => (
               <div key={post.id} className="p-4 @container">
                 <div className="flex flex-col items-stretch justify-start rounded-xl @xl:flex-row @xl:items-start">
                   <Link href={`/posts/${post.id}`} className="w-full">
@@ -228,46 +179,6 @@ export default function CategoryPage() {
               </div>
             ))}
             
-            {posts.length > postsPerPage && (
-              <div className="flex items-center justify-center p-4">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
-                </button>
-                
-                {totalPages > 1 ? getPageNumbers().map((number, index) => (
-                  <React.Fragment key={index}>
-                    {number === '...' ? (
-                      <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
-                        ...
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => setCurrentPage(number as number)}
-                        className={`text-sm leading-normal flex size-10 items-center justify-center rounded-full transition-colors ${
-                          currentPage === number 
-                            ? 'font-bold text-[#121416] bg-[#f1f2f4]' 
-                            : 'font-normal text-[#121416] hover:bg-gray-100'
-                        }`}
-                      >
-                        {number}
-                      </button>
-                    )}
-                  </React.Fragment>
-                )) : null}
-                
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
-                </button>
-              </div>
-            )}
           </>
         )}
       </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { PencilIcon, TrashIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
 interface Post {
@@ -21,8 +21,6 @@ interface Post {
 export default function AdminHome() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const postsPerPage = 10
 
   useEffect(() => {
     // LocalStorageから投稿を取得（カスタム投稿のみ表示）
@@ -62,52 +60,6 @@ export default function AdminHome() {
     )
   }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(posts.length / postsPerPage)
-  const indexOfLastPost = currentPage * postsPerPage
-  const indexOfFirstPost = indexOfLastPost - postsPerPage
-  const displayPosts = posts.slice(indexOfFirstPost, indexOfLastPost)
-
-  // Generate page numbers
-  const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxPagesToShow = 5
-    
-    // If there's only 1 page or no pages, return early
-    if (totalPages <= 1) {
-      return []
-    }
-    
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pageNumbers.push(i)
-        }
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      } else if (currentPage >= totalPages - 2) {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pageNumbers.push(i)
-        }
-      } else {
-        pageNumbers.push(1)
-        pageNumbers.push('...')
-        pageNumbers.push(currentPage - 1)
-        pageNumbers.push(currentPage)
-        pageNumbers.push(currentPage + 1)
-        pageNumbers.push('...')
-        pageNumbers.push(totalPages)
-      }
-    }
-    
-    return pageNumbers
-  }
 
   return (
     <div className="px-6 flex flex-1 justify-center py-5">
@@ -151,7 +103,7 @@ export default function AdminHome() {
               </tr>
             </thead>
             <tbody>
-              {displayPosts.map((post) => (
+              {posts.map((post) => (
                 <tr key={post.id} className="border-b border-[#f1f2f4] hover:bg-gray-50">
                   <td className="p-4">
                     {post.image && (
@@ -205,47 +157,6 @@ export default function AdminHome() {
             </tbody>
           </table>
         </div>
-
-        {posts.length > postsPerPage && (
-          <div className="flex items-center justify-center p-4">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
-            </button>
-            
-            {totalPages > 1 ? getPageNumbers().map((number, index) => (
-              <React.Fragment key={index}>
-                {number === '...' ? (
-                  <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => setCurrentPage(number as number)}
-                    className={`text-sm leading-normal flex size-10 items-center justify-center rounded-full transition-colors ${
-                      currentPage === number 
-                        ? 'font-bold text-[#121416] bg-[#f1f2f4]' 
-                        : 'font-normal text-[#121416] hover:bg-gray-100'
-                    }`}
-                  >
-                    {number}
-                  </button>
-                )}
-              </React.Fragment>
-            )) : null}
-            
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="flex size-10 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRightIcon className="text-[#121416] w-[18px] h-[18px]" />
-            </button>
-          </div>
-        )}
 
         {posts.length === 0 && (
           <div className="text-center py-20">
