@@ -84,6 +84,11 @@ export default function CategoryPage() {
     const pageNumbers = []
     const maxPagesToShow = 5
     
+    // If there's only 1 page or no pages, return early
+    if (totalPages <= 1) {
+      return []
+    }
+    
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i)
@@ -223,7 +228,7 @@ export default function CategoryPage() {
               </div>
             ))}
             
-            {totalPages > 1 && (
+            {totalPages > 1 && getPageNumbers().length > 0 && (
               <div className="flex items-center justify-center p-4">
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
