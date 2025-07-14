@@ -228,7 +228,7 @@ export default function CategoryPage() {
               </div>
             ))}
             
-            {totalPages > 1 && getPageNumbers().length > 0 && (
+            {posts.length > postsPerPage && (
               <div className="flex items-center justify-center p-4">
                 <button 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
@@ -238,7 +238,7 @@ export default function CategoryPage() {
                   <ChevronLeftIcon className="text-[#121416] w-[18px] h-[18px]" />
                 </button>
                 
-                {getPageNumbers().map((number, index) => (
+                {totalPages > 1 ? getPageNumbers().map((number, index) => (
                   <React.Fragment key={index}>
                     {number === '...' ? (
                       <span className="text-sm font-normal leading-normal flex size-10 items-center justify-center text-[#121416] rounded-full">
@@ -257,7 +257,7 @@ export default function CategoryPage() {
                       </button>
                     )}
                   </React.Fragment>
-                ))}
+                )) : null}
                 
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
