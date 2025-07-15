@@ -11,8 +11,9 @@ const newsreader = Newsreader({
 
 const notoSans = Noto_Sans({
   weight: ['400', '500', '700', '900'],
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-noto-sans",
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

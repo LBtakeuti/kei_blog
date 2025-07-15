@@ -169,6 +169,11 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
                     value={layout.columns}
                     onChange={(e) => updateColumns(layout.id, parseInt(e.target.value) as 1 | 2 | 3 | 4)}
                     className="px-3 py-1.5 border border-[#dde0e3] rounded-md text-sm bg-white focus:outline-none focus:border-blue-500"
+                    style={{ 
+                      fontFamily: "'Noto Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                      fontWeight: 500,
+                      letterSpacing: '0.025em'
+                    }}
                   >
                     <option value={1}>1列</option>
                     <option value={2}>2列</option>
