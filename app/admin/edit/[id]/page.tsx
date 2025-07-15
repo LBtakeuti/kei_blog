@@ -36,6 +36,7 @@ export default function EditPost() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [imageLayouts, setImageLayouts] = useState<ImageLayout[]>([])
   const [tags, setTags] = useState('')
+  const [isDraft, setIsDraft] = useState(false)
   const [loading, setLoading] = useState(true)
   const [post, setPost] = useState<Post | null>(null)
 
@@ -57,6 +58,7 @@ export default function EditPost() {
         setImagePreview(savedPost.image)
         setImageLayouts(savedPost.imageLayouts || [])
         setTags(savedPost.tags?.join(', ') || '')
+        setIsDraft(savedPost.isDraft || false)
         setLoading(false)
         return
       }
@@ -79,7 +81,7 @@ export default function EditPost() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, saveAsDraft: boolean = false) => {
     e.preventDefault()
     
     if (!post) return
@@ -100,6 +102,8 @@ export default function EditPost() {
       image: imageUrl,
       imageLayouts,
       tags: tagArray,
+      isDraft: saveAsDraft,
+      isPublished: !saveAsDraft,
     }
     
     // LocalStorageを更新
@@ -119,7 +123,7 @@ export default function EditPost() {
     localStorage.setItem('posts', JSON.stringify(posts))
     console.log('現在の投稿一覧:', posts)
     
-    alert('記事が更新されました！')
+    alert(saveAsDraft ? '下書きとして保存されました！' : '記事が公開されました！')
     router.push('/admin')
   }
 
@@ -262,10 +266,18 @@ export default function EditPost() {
               <span className="truncate">キャンセル</span>
             </Link>
             <button
+              type="button"
+              onClick={(e) => handleSubmit(e as any, true)}
+              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-300 text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
+            >
+              <span className="truncate">下書き保存</span>
+            </button>
+            <button
               type="submit"
+              onClick={(e) => handleSubmit(e as any, false)}
               className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]"
             >
-              <span className="truncate">更新</span>
+              <span className="truncate">公開</span>
             </button>
           </div>
         </form>

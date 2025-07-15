@@ -125,6 +125,11 @@ export default function AdminHome() {
                 )}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-[#121416] font-medium text-sm line-clamp-2">{post.title}</h3>
+                  {post.isDraft && (
+                    <span className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full mt-1">
+                      下書き
+                    </span>
+                  )}
                   {post.excerpt && (
                     <p className="text-[#6a7581] text-xs mt-1 line-clamp-2">
                       {post.excerpt}
@@ -165,6 +170,7 @@ export default function AdminHome() {
               <tr className="border-b border-[#f1f2f4]">
                 <th className="text-left p-4 text-sm font-medium text-[#6a7581]">画像</th>
                 <th className="text-left p-4 text-sm font-medium text-[#6a7581]">タイトル</th>
+                <th className="text-left p-4 text-sm font-medium text-[#6a7581]">ステータス</th>
                 <th className="text-left p-4 text-sm font-medium text-[#6a7581]">カテゴリー</th>
                 <th className="text-left p-4 text-sm font-medium text-[#6a7581]">著者</th>
                 <th className="text-left p-4 text-sm font-medium text-[#6a7581]">日付</th>
@@ -189,6 +195,17 @@ export default function AdminHome() {
                       <p className="text-[#6a7581] text-sm mt-1 line-clamp-2">
                         {post.excerpt}
                       </p>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    {post.isDraft ? (
+                      <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                        下書き
+                      </span>
+                    ) : (
+                      <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                        公開中
+                      </span>
                     )}
                   </td>
                   <td className="p-4">
