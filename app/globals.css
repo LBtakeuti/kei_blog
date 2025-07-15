@@ -5,6 +5,11 @@
 @layer base {
   body {
     @apply bg-white text-[#121416];
+    background-image: url('/background-pattern.png');
+    background-repeat: repeat;
+    background-position: center;
+    background-size: 600px;
+    background-attachment: fixed;
   }
   
   /* Reset default styles for form elements */

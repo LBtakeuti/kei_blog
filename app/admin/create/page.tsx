@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import ImageEditor from '@/components/ImageEditor'
 import { ImageLayout } from '@/types/image'
+import { Category } from '@/types/category'
 
 interface Post {
   id: number
@@ -31,6 +32,14 @@ export default function CreatePost() {
   const [imageLayouts, setImageLayouts] = useState<ImageLayout[]>([])
   const [tags, setTags] = useState('')
   const [isDraft, setIsDraft] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('categories')
+    if (saved) {
+      setCategories(JSON.parse(saved))
+    }
+  }, [])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -71,7 +80,7 @@ export default function CreatePost() {
       date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
       tags: tagArray,
       isDraft: saveAsDraft,
-      isPublished: !saveAsDraft
+      isPublished: !saveAsDraft,
     }
     posts.unshift(newPost)
     localStorage.setItem('posts', JSON.stringify(posts))
@@ -127,9 +136,11 @@ export default function CreatePost() {
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="">カテゴリーを選択</option>
-                <option value="lifestyle">ライフスタイル</option>
-                <option value="photography">写真</option>
-                <option value="fitness">フィットネス</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
