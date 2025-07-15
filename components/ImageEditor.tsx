@@ -168,7 +168,7 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
                   <select
                     value={layout.columns}
                     onChange={(e) => updateColumns(layout.id, parseInt(e.target.value) as 1 | 2 | 3 | 4)}
-                    className="px-2 py-1 border border-[#dde0e3] rounded text-xs sm:text-sm"
+                    className="px-3 py-1.5 border border-[#dde0e3] rounded-md text-sm bg-white focus:outline-none focus:border-blue-500"
                   >
                     <option value={1}>1列</option>
                     <option value={2}>2列</option>
