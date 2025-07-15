@@ -200,7 +200,7 @@ export default function CreatePost() {
               />
             </label>
           </div>
-          <div className="px-4 py-3">
+          <div className="px-4 py-6 border-t border-gray-200">
             <ImageEditor 
               layouts={imageLayouts} 
               onLayoutsChange={setImageLayouts} 
