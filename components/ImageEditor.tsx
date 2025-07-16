@@ -1,17 +1,27 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { PhotoIcon, TrashIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon, EyeIcon } from '@heroicons/react/24/outline'
+import { useState, useRef, DragEvent } from 'react'
+import { PhotoIcon, TrashIcon, PlusIcon, Squares2X2Icon, RectangleGroupIcon, ViewColumnsIcon, SquaresPlusIcon } from '@heroicons/react/24/outline'
 import { ImageData, ImageLayout } from '@/types/image'
+import { compressImage } from '@/utils/imageCompression'
 
 interface ImageEditorProps {
   layouts: ImageLayout[]
   onLayoutsChange: (layouts: ImageLayout[]) => void
 }
 
+// レイアウトテンプレート
+const LAYOUT_TEMPLATES = [
+  { id: '1col', name: '1列', columns: 1 as const, icon: RectangleGroupIcon },
+  { id: '2col', name: '2列', columns: 2 as const, icon: ViewColumnsIcon },
+  { id: '3col', name: '3列', columns: 3 as const, icon: Squares2X2Icon },
+  { id: '4col', name: '4列', columns: 4 as const, icon: SquaresPlusIcon },
+]
+
 export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorProps) {
-  const [draggedItem, setDraggedItem] = useState<{ layoutId: string; imageId: string } | null>(null)
-  const [previewMode, setPreviewMode] = useState(false)
+  const [draggedImage, setDraggedImage] = useState<{ layoutId: string; imageId: string } | null>(null)
+  const [draggedOverLayout, setDraggedOverLayout] = useState<string | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<typeof LAYOUT_TEMPLATES[0] | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = async (files: FileList | null, layoutId?: string) => {
@@ -20,21 +30,22 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     const newImages: ImageData[] = []
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
-      const reader = new FileReader()
       
-      await new Promise((resolve) => {
-        reader.onloadend = () => {
-          const imageData: ImageData = {
-            id: Date.now() + i + '',
-            src: reader.result as string,
-            alt: file.name,
-            caption: ''
-          }
-          newImages.push(imageData)
-          resolve(null)
+      try {
+        // 画像を圧縮
+        const compressedSrc = await compressImage(file, 800, 0.7)
+        
+        const imageData: ImageData = {
+          id: Date.now() + i + '',
+          src: compressedSrc,
+          alt: file.name,
+          caption: ''
         }
-        reader.readAsDataURL(file)
-      })
+        newImages.push(imageData)
+      } catch (error) {
+        console.error('画像の圧縮に失敗しました:', error)
+        alert(`画像 ${file.name} の処理に失敗しました`)
+      }
     }
 
     if (layoutId) {
@@ -45,26 +56,22 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
           : layout
       )
       onLayoutsChange(updatedLayouts)
-    } else {
+    } else if (selectedTemplate) {
       // 新しいレイアウトを作成
       const newLayout: ImageLayout = {
         id: Date.now() + '',
         images: newImages,
-        columns: 2,
+        columns: selectedTemplate.columns,
         position: layouts.length
       }
       onLayoutsChange([...layouts, newLayout])
+      setSelectedTemplate(null)
     }
   }
 
-  const addNewLayout = () => {
-    const newLayout: ImageLayout = {
-      id: Date.now() + '',
-      images: [],
-      columns: 2,
-      position: layouts.length
-    }
-    onLayoutsChange([...layouts, newLayout])
+  const addNewLayout = (template: typeof LAYOUT_TEMPLATES[0]) => {
+    setSelectedTemplate(template)
+    fileInputRef.current?.click()
   }
 
   const deleteLayout = (layoutId: string) => {
@@ -102,7 +109,66 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     onLayoutsChange(updatedLayouts)
   }
 
-  const moveLayout = (fromIndex: number, toIndex: number) => {
+  // ドラッグ&ドロップハンドラー
+  const handleDragStart = (e: DragEvent, layoutId: string, imageId: string) => {
+    setDraggedImage({ layoutId, imageId })
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDragEnter = (layoutId: string) => {
+    setDraggedOverLayout(layoutId)
+  }
+
+  const handleDragLeave = () => {
+    setDraggedOverLayout(null)
+  }
+
+  const handleDrop = (e: DragEvent, targetLayoutId: string, targetIndex?: number) => {
+    e.preventDefault()
+    if (!draggedImage) return
+
+    const { layoutId: sourceLayoutId, imageId } = draggedImage
+
+    // 画像を取得
+    const sourceLayout = layouts.find(l => l.id === sourceLayoutId)
+    const image = sourceLayout?.images.find(img => img.id === imageId)
+    if (!image) return
+
+    // 画像を移動
+    const updatedLayouts = layouts.map(layout => {
+      if (layout.id === sourceLayoutId) {
+        // ソースから削除
+        return {
+          ...layout,
+          images: layout.images.filter(img => img.id !== imageId)
+        }
+      } else if (layout.id === targetLayoutId) {
+        // ターゲットに追加
+        const newImages = [...layout.images]
+        if (targetIndex !== undefined) {
+          newImages.splice(targetIndex, 0, image)
+        } else {
+          newImages.push(image)
+        }
+        return { ...layout, images: newImages }
+      }
+      return layout
+    })
+
+    onLayoutsChange(updatedLayouts)
+    setDraggedImage(null)
+    setDraggedOverLayout(null)
+  }
+
+  const handleLayoutDrop = (e: DragEvent, fromIndex: number, toIndex: number) => {
+    e.preventDefault()
+    if (fromIndex === toIndex) return
+
     const updatedLayouts = [...layouts]
     const [movedLayout] = updatedLayouts.splice(fromIndex, 1)
     updatedLayouts.splice(toIndex, 0, movedLayout)
@@ -115,194 +181,185 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     onLayoutsChange(finalLayouts)
   }
 
-  const moveLayoutUp = (index: number) => {
-    if (index > 0) {
-      moveLayout(index, index - 1)
-    }
-  }
-
-  const moveLayoutDown = (index: number) => {
-    if (index < layouts.length - 1) {
-      moveLayout(index, index + 1)
-    }
-  }
-
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <h3 className="text-base sm:text-lg font-semibold text-[#121416]">画像レイアウト</h3>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setPreviewMode(!previewMode)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm ${
-              previewMode 
-                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <EyeIcon className="w-4 h-4" />
-            {previewMode ? 'プレビュー中' : 'プレビュー'}
-          </button>
-          <button
-            type="button"
-            onClick={addNewLayout}
-            className="flex items-center gap-2 px-3 py-2 bg-[#dce7f3] text-[#121416] rounded-lg hover:bg-[#c5d5e8] transition-colors text-sm"
-          >
-            <PlusIcon className="w-4 h-4" />
-            レイアウト追加
-          </button>
+    <div className="space-y-6">
+      {/* ヘッダー部分 */}
+      <div className="flex flex-col gap-4">
+        <h3 className="text-lg font-semibold text-[#121416]">画像レイアウト</h3>
+        
+        {/* レイアウトテンプレート選択 */}
+        <div className="flex flex-wrap gap-3">
+          <span className="text-sm text-[#6a7581] self-center">レイアウトを追加:</span>
+          {LAYOUT_TEMPLATES.map((template) => {
+            const Icon = template.icon
+            return (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => addNewLayout(template)}
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-[#dde0e3] rounded-lg hover:bg-gray-50 hover:border-blue-400 transition-all group"
+              >
+                <Icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                <span className="text-sm font-medium">{template.name}</span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      {layouts.map((layout, layoutIndex) => (
-        <div key={layout.id} className={`border border-[#dde0e3] rounded-xl p-3 sm:p-4 ${
-          previewMode ? 'bg-white' : 'bg-gray-50'
-        }`}>
-          {!previewMode && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <span className="font-medium text-[#121416] text-sm sm:text-base">レイアウト {layoutIndex + 1}</span>
-                <div className="flex items-center gap-2">
-                  <label className="text-xs sm:text-sm text-[#6a7581]">列数:</label>
-                  <select
-                    value={layout.columns}
-                    onChange={(e) => updateColumns(layout.id, parseInt(e.target.value) as 1 | 2 | 3 | 4)}
-                    className="px-3 py-1.5 border border-[#dde0e3] rounded-md text-sm bg-white focus:outline-none focus:border-blue-500"
-                    style={{ 
-                      fontFamily: "'Noto Sans', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-                      fontWeight: 500,
-                      letterSpacing: '0.025em'
-                    }}
-                  >
-                    <option value={1}>1列</option>
-                    <option value={2}>2列</option>
-                    <option value={3}>3列</option>
-                    <option value={4}>4列</option>
-                  </select>
+      {/* レイアウト一覧 */}
+      <div className="space-y-4">
+        {layouts.map((layout, layoutIndex) => (
+          <div
+            key={layout.id}
+            className={`border-2 rounded-xl p-4 transition-all ${
+              draggedOverLayout === layout.id 
+                ? 'border-blue-400 bg-blue-50' 
+                : 'border-[#dde0e3] bg-white'
+            }`}
+            onDragOver={handleDragOver}
+            onDragEnter={() => handleDragEnter(layout.id)}
+            onDragLeave={handleDragLeave}
+            onDrop={(e) => handleDrop(e, layout.id)}
+          >
+            {/* レイアウトヘッダー */}
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-gray-600">
+                  レイアウト {layoutIndex + 1}
+                </span>
+                
+                {/* 列数変更ボタン */}
+                <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+                  {LAYOUT_TEMPLATES.map((template) => {
+                    const Icon = template.icon
+                    return (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => updateColumns(layout.id, template.columns)}
+                        className={`p-1.5 rounded transition-all ${
+                          layout.columns === template.columns
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        title={template.name}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => moveLayoutUp(layoutIndex)}
-                    disabled={layoutIndex === 0}
-                    className={`p-1 rounded text-xs ${
-                      layoutIndex === 0 
-                        ? 'text-gray-300 cursor-not-allowed' 
-                        : 'text-gray-600 hover:bg-gray-200'
-                    }`}
-                    title="上に移動"
-                  >
-                    <ChevronUpIcon className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveLayoutDown(layoutIndex)}
-                    disabled={layoutIndex === layouts.length - 1}
-                    className={`p-1 rounded text-xs ${
-                      layoutIndex === layouts.length - 1 
-                        ? 'text-gray-300 cursor-not-allowed' 
-                        : 'text-gray-600 hover:bg-gray-200'
-                    }`}
-                    title="下に移動"
-                  >
-                    <ChevronDownIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => deleteLayout(layout.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                  title="レイアウトを削除"
-                >
-                  <TrashIcon className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
 
-          <div className={`grid gap-4 mb-4 ${layout.columns === 1 ? 'grid-cols-1' : layout.columns === 2 ? 'grid-cols-2' : layout.columns === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-            {layout.images.map((image, imageIndex) => (
-              <div key={image.id} className="relative group">
-                <img
-                  src={image.src}
-                  alt={image.alt}
-                  className={`w-full object-cover rounded-lg ${
-                    previewMode ? 'h-auto max-h-96' : 'h-32 sm:h-40'
-                  }`}
-                />
-                {!previewMode && (
-                  <button
-                    type="button"
-                    onClick={() => deleteImage(layout.id, image.id)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                    title="画像を削除"
-                  >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                )}
-                {image.caption && (
-                  <div className="mt-2 text-sm text-gray-600 text-center italic">
-                    {image.caption}
+              <button
+                type="button"
+                onClick={() => deleteLayout(layout.id)}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="レイアウトを削除"
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* 画像グリッド */}
+            <div className={`grid gap-3 mb-3 ${
+              layout.columns === 1 ? 'grid-cols-1' : 
+              layout.columns === 2 ? 'grid-cols-2' : 
+              layout.columns === 3 ? 'grid-cols-3' : 
+              'grid-cols-4'
+            }`}>
+              {layout.images.map((image, imageIndex) => (
+                <div
+                  key={image.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, layout.id, image.id)}
+                  className="relative group cursor-move"
+                >
+                  <div className="relative overflow-hidden rounded-lg bg-gray-100">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all" />
+                    
+                    {/* 削除ボタン */}
+                    <button
+                      type="button"
+                      onClick={() => deleteImage(layout.id, image.id)}
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                      title="画像を削除"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                    
+                    {/* ドラッグインジケーター */}
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-xs font-medium">
+                        ドラッグして移動
+                      </div>
+                    </div>
                   </div>
-                )}
-                {!previewMode && (
+                  
+                  {/* キャプション入力 */}
                   <input
                     type="text"
-                    placeholder="キャプション（任意）"
+                    placeholder="キャプションを追加..."
                     value={image.caption || ''}
                     onChange={(e) => updateImageCaption(layout.id, image.id, e.target.value)}
-                    className="w-full mt-2 px-3 py-2 text-sm border border-[#dde0e3] rounded-lg focus:outline-none focus:border-blue-500"
+                    className="w-full mt-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-blue-400 transition-colors"
                   />
-                )}
+                </div>
+              ))}
+
+              {/* 画像追加ボタン */}
+              <div className="relative">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e.target.files, layout.id)}
+                  className="hidden"
+                  id={`add-image-${layout.id}`}
+                />
+                <label
+                  htmlFor={`add-image-${layout.id}`}
+                  className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                >
+                  <PlusIcon className="w-8 h-8 text-gray-400 group-hover:text-blue-500" />
+                  <span className="mt-2 text-sm text-gray-500 group-hover:text-blue-600">
+                    画像を追加
+                  </span>
+                </label>
               </div>
-            ))}
-          </div>
-
-          {!previewMode && (
-            <div className="flex justify-center">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handleFileChange(e.target.files, layout.id)}
-                className="hidden"
-                id={`image-upload-${layout.id}`}
-              />
-              <label
-                htmlFor={`image-upload-${layout.id}`}
-                className="flex items-center gap-2 px-6 py-3 border-2 border-dashed border-[#dde0e3] rounded-lg cursor-pointer hover:bg-white hover:border-blue-300 transition-colors"
-              >
-                <PhotoIcon className="w-5 h-5 text-gray-400" />
-                <span className="text-sm text-[#6a7581] font-medium">画像を追加</span>
-              </label>
             </div>
-          )}
-        </div>
-      ))}
+          </div>
+        ))}
+      </div>
 
-      {layouts.length === 0 && !previewMode && (
-        <div className="text-center py-12 border-2 border-dashed border-[#dde0e3] rounded-xl bg-gray-50">
+      {/* 空の状態 */}
+      {layouts.length === 0 && (
+        <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
           <PhotoIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h4 className="text-lg font-medium text-[#121416] mb-2">画像レイアウトを追加</h4>
-          <p className="text-[#6a7581] mb-6">記事に画像を追加してレイアウトを作成しましょう</p>
-          <button
-            type="button"
-            onClick={addNewLayout}
-            className="px-6 py-3 bg-[#dce7f3] text-[#121416] rounded-lg hover:bg-[#c5d5e8] transition-colors font-medium"
-          >
-            最初のレイアウトを追加
-          </button>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">
+            画像レイアウトを作成しましょう
+          </h4>
+          <p className="text-sm text-gray-500 mb-6">
+            上のテンプレートから選んで、記事に画像を追加できます
+          </p>
         </div>
       )}
 
-      {previewMode && layouts.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          画像レイアウトがまだありません
-        </div>
-      )}
+      {/* 隠しファイル入力 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={(e) => handleFileChange(e.target.files)}
+        className="hidden"
+      />
     </div>
   )
 }

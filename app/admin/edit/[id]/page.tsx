@@ -107,24 +107,45 @@ export default function EditPost() {
     }
     
     // LocalStorageを更新
-    const savedPosts = localStorage.getItem('posts')
-    const posts = savedPosts ? JSON.parse(savedPosts) : []
-    
-    // 既存のカスタム投稿を更新
-    const existingIndex = posts.findIndex((p: Post) => p.id === post.id)
-    if (existingIndex !== -1) {
-      posts[existingIndex] = updatedPost
-      console.log('既存の投稿を更新:', updatedPost)
-    } else {
-      posts.unshift(updatedPost)
-      console.log('新しい投稿として追加:', updatedPost)
+    try {
+      const savedPosts = localStorage.getItem('posts')
+      const posts = savedPosts ? JSON.parse(savedPosts) : []
+      
+      // 既存のカスタム投稿を更新
+      const existingIndex = posts.findIndex((p: Post) => p.id === post.id)
+      if (existingIndex !== -1) {
+        posts[existingIndex] = updatedPost
+        console.log('既存の投稿を更新:', updatedPost)
+      } else {
+        posts.unshift(updatedPost)
+        console.log('新しい投稿として追加:', updatedPost)
+      }
+      
+      // 容量チェック
+      const dataSize = new Blob([JSON.stringify(posts)]).size
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      
+      if (dataSize > maxSize) {
+        throw new Error('データサイズが大きすぎます。画像を減らすか、古い投稿を削除してください。')
+      }
+      
+      localStorage.setItem('posts', JSON.stringify(posts))
+      console.log('データサイズ:', (dataSize / 1024 / 1024).toFixed(2) + 'MB')
+      
+      alert(saveAsDraft ? '下書きとして保存されました！' : '記事が公開されました！')
+      router.push('/admin')
+    } catch (error) {
+      console.error('保存エラー:', error)
+      if (error instanceof Error) {
+        if (error.name === 'QuotaExceededError' || error.message.includes('exceeded')) {
+          alert('保存容量が不足しています。画像のサイズを小さくするか、不要な投稿を削除してください。')
+        } else {
+          alert(`保存に失敗しました: ${error.message}`)
+        }
+      } else {
+        alert('保存に失敗しました。')
+      }
     }
-    
-    localStorage.setItem('posts', JSON.stringify(posts))
-    console.log('現在の投稿一覧:', posts)
-    
-    alert(saveAsDraft ? '下書きとして保存されました！' : '記事が公開されました！')
-    router.push('/admin')
   }
 
   if (loading) {

@@ -41,16 +41,24 @@ export default function CreatePost() {
     }
   }, [])
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setSelectedImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        const base64String = reader.result as string
-        setImagePreview(base64String)
+      try {
+        const { compressImage } = await import('@/utils/imageCompression')
+        const compressedImage = await compressImage(file, 1200, 0.8)
+        setImagePreview(compressedImage)
+      } catch (error) {
+        console.error('画像の圧縮に失敗しました:', error)
+        // フォールバック：圧縮に失敗した場合は元の画像を使用
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          const base64String = reader.result as string
+          setImagePreview(base64String)
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -67,28 +75,51 @@ export default function CreatePost() {
     
     // 投稿データを保存する処理をここに追加
     // localStorage に保存
-    const posts = JSON.parse(localStorage.getItem('posts') || '[]')
-    const newPost: Post = {
-      id: Date.now(),
-      title,
-      category,
-      content,
-      excerpt: content.substring(0, 150), // 自動で抜粋を生成
-      image: imageUrl,
-      imageLayouts,
-      author: '管理者',
-      date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
-      tags: tagArray,
-      isDraft: saveAsDraft,
-      isPublished: !saveAsDraft,
+    try {
+      const posts = JSON.parse(localStorage.getItem('posts') || '[]')
+      const newPost: Post = {
+        id: Date.now(),
+        title,
+        category,
+        content,
+        excerpt: content.substring(0, 150), // 自動で抜粋を生成
+        image: imageUrl,
+        imageLayouts,
+        author: '管理者',
+        date: new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' }),
+        tags: tagArray,
+        isDraft: saveAsDraft,
+        isPublished: !saveAsDraft,
+      }
+      posts.unshift(newPost)
+      
+      // 容量チェック
+      const dataSize = new Blob([JSON.stringify(posts)]).size
+      const maxSize = 5 * 1024 * 1024 // 5MB
+      
+      if (dataSize > maxSize) {
+        throw new Error('データサイズが大きすぎます。画像を減らすか、古い投稿を削除してください。')
+      }
+      
+      localStorage.setItem('posts', JSON.stringify(posts))
+      
+      console.log('新しい投稿が作成されました:', newPost)
+      console.log('データサイズ:', (dataSize / 1024 / 1024).toFixed(2) + 'MB')
+      
+      alert(saveAsDraft ? '下書きが保存されました！' : '投稿が作成されました！')
+    } catch (error) {
+      console.error('保存エラー:', error)
+      if (error instanceof Error) {
+        if (error.name === 'QuotaExceededError' || error.message.includes('exceeded')) {
+          alert('保存容量が不足しています。画像のサイズを小さくするか、不要な投稿を削除してください。')
+        } else {
+          alert(`保存に失敗しました: ${error.message}`)
+        }
+      } else {
+        alert('保存に失敗しました。')
+      }
+      return
     }
-    posts.unshift(newPost)
-    localStorage.setItem('posts', JSON.stringify(posts))
-    
-    console.log('新しい投稿が作成されました:', newPost)
-    console.log('現在の投稿一覧:', posts)
-    
-    alert(saveAsDraft ? '下書きが保存されました！' : '投稿が作成されました！')
     
     // フォームをリセット
     setTitle('')

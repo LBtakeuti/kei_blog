@@ -14,7 +14,8 @@
       "Bash(true)",
       "Bash(npm start:*)",
       "Bash(git push:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
