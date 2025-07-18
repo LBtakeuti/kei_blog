@@ -4,6 +4,10 @@ import { supabase, Post, Category } from './supabase'
 export const postService = {
   // 記事一覧取得
   async getAll(includeUnpublished = false) {
+    if (!supabase) {
+      return []
+    }
+    
     let query = supabase
       .from('posts')
       .select('*')
@@ -20,6 +24,10 @@ export const postService = {
 
   // 記事詳細取得
   async getById(id: string) {
+    if (!supabase) {
+      return null
+    }
+    
     const { data, error } = await supabase
       .from('posts')
       .select('*')

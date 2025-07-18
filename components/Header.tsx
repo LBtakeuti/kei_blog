@@ -39,14 +39,7 @@ export default function Header() {
               </>
             )}
           </div>
-          {!isAdminPage && (
-            <Link 
-              href="/admin/create"
-              className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#c5d5e8] transition-colors"
-            >
-              <span className="truncate">New Post</span>
-            </Link>
-          )}
+          {/* New Post button removed for security */}
         </div>
 
         {/* Mobile Menu Button */}
@@ -106,13 +99,7 @@ export default function Header() {
                 >
                   Contact
                 </Link>
-                <Link 
-                  href="/admin/create"
-                  className="block w-full text-center py-3 px-4 bg-[#dce7f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em] rounded-xl hover:bg-[#c5d5e8] transition-colors mt-4"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  New Post
-                </Link>
+                {/* New Post button removed for security */}
               </>
             )}
           </div>

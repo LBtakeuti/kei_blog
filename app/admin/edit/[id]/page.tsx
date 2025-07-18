@@ -7,6 +7,7 @@ import { PhotoIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import ImageEditor from '@/components/ImageEditor'
 import { ImageLayout } from '@/types/image'
+import { Category } from '@/types/category'
 
 interface Post {
   id: number
@@ -39,8 +40,15 @@ export default function EditPost() {
   const [isDraft, setIsDraft] = useState(false)
   const [loading, setLoading] = useState(true)
   const [post, setPost] = useState<Post | null>(null)
+  const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
+    // カテゴリを取得
+    const savedCategories = localStorage.getItem('categories')
+    if (savedCategories) {
+      setCategories(JSON.parse(savedCategories))
+    }
+
     if (!id) return
 
     const postId = parseInt(id as string)
@@ -209,9 +217,11 @@ export default function EditPost() {
                 onChange={(e) => setCategory(e.target.value)}
               >
                 <option value="">カテゴリーを選択</option>
-                <option value="lifestyle">ライフスタイル</option>
-                <option value="photography">写真</option>
-                <option value="fitness">フィットネス</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.slug}>
+                    {cat.name}
+                  </option>
+                ))
               </select>
             </label>
           </div>

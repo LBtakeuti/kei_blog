@@ -1,6 +1,3 @@
-import { supabase } from './supabase'
-import { postService } from './supabase-service'
-
 export interface Post {
   id: number
   title: string
@@ -24,14 +21,25 @@ export async function getPosts(): Promise<Post[]> {
 
   if (useSupabase) {
     try {
-      const posts = await postService.getAll(false) // 公開済みのみ
-      return posts.map(post => ({
+      // Try to use Supabase service if available
+      const serviceModule = process.env.NODE_ENV === 'production' 
+        ? await import('./supabase-service').catch(() => import('./supabase-dummy'))
+        : await import('./supabase-dummy')
+      
+      const { postService } = serviceModule
+      const posts = await postService.getAll(false)
+      
+      if (!posts || posts.length === 0) {
+        return []
+      }
+      
+      return posts.map((post: any) => ({
         id: parseInt(post.id),
         title: post.title,
         content: post.content,
         excerpt: post.excerpt || undefined,
         author: post.author,
-        date: new Date(post.created_at).toLocaleDateString('ja-JP'),
+        date: post.created_at ? new Date(post.created_at).toLocaleDateString('ja-JP') : '',
         image: post.featured_image || '',
         category: post.category || undefined,
         tags: post.tags || [],
@@ -40,7 +48,8 @@ export async function getPosts(): Promise<Post[]> {
         isPublished: post.is_published
       }))
     } catch (error) {
-      console.error('Supabase error:', error)
+      console.error('Data fetch error:', error)
+      return []
     }
   }
 
@@ -54,7 +63,14 @@ export async function getPostById(id: string): Promise<Post | null> {
 
   if (useSupabase) {
     try {
+      // Try to use Supabase service if available
+      const serviceModule = process.env.NODE_ENV === 'production' 
+        ? await import('./supabase-service').catch(() => import('./supabase-dummy'))
+        : await import('./supabase-dummy')
+      
+      const { postService } = serviceModule
       const post = await postService.getById(id)
+      
       if (!post || !post.is_published) return null
       
       return {
@@ -63,7 +79,7 @@ export async function getPostById(id: string): Promise<Post | null> {
         content: post.content,
         excerpt: post.excerpt || undefined,
         author: post.author,
-        date: new Date(post.created_at).toLocaleDateString('ja-JP'),
+        date: post.created_at ? new Date(post.created_at).toLocaleDateString('ja-JP') : '',
         image: post.featured_image || '',
         category: post.category || undefined,
         tags: post.tags || [],
@@ -72,7 +88,8 @@ export async function getPostById(id: string): Promise<Post | null> {
         isPublished: post.is_published
       }
     } catch (error) {
-      console.error('Supabase error:', error)
+      console.error('Data fetch error:', error)
+      return null
     }
   }
 
