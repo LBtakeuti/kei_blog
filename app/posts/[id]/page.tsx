@@ -1,78 +1,47 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Image from 'next/image'
+import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import CommentSection from '@/components/CommentSection'
 import ImageLayoutRenderer from '@/components/ImageLayoutRenderer'
-import { ImageLayout } from '@/types/image'
+import { getPosts, getPostById } from '@/lib/posts-data'
+import { Metadata } from 'next'
 
-interface Post {
-  id: number
-  title: string
-  content: string
-  excerpt?: string
-  author: string
-  date: string
-  image: string
-  category?: string
-  tags?: string[]
-  imageLayouts?: ImageLayout[]
-  isDraft?: boolean
-  isPublished?: boolean
+// 静的パラメータの生成（ビルド時に実行）
+export async function generateStaticParams() {
+  const posts = await getPosts()
+  
+  return posts.map((post) => ({
+    id: post.id.toString(),
+  }))
 }
 
-
-export default function PostDetail() {
-  const params = useParams()
-  const id = params?.id
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!id) return
-
-    const postId = parseInt(id as string)
-    
-    // localStorageからカスタム投稿を探す
-    const savedPosts = localStorage.getItem('posts')
-    if (savedPosts) {
-      const customPosts = JSON.parse(savedPosts)
-      const customPost = customPosts.find((p: Post) => p.id === postId)
-      if (customPost) {
-        console.log('カスタム投稿を表示:', customPost)
-        setPost(customPost)
-        setLoading(false)
-        return
-      }
+// メタデータの生成（SEO対策）
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const post = await getPostById(params.id)
+  
+  if (!post) {
+    return {
+      title: '記事が見つかりません',
     }
-    
-    console.log('投稿が見つかりませんでした:', postId)
-    setLoading(false)
-  }, [id])
-
-  if (loading) {
-    return (
-      <div className="flex flex-1 justify-center items-center py-20">
-        <p className="text-[#6a7581] text-lg">読み込み中...</p>
-      </div>
-    )
   }
 
+  return {
+    title: post.title,
+    description: post.excerpt || post.content.substring(0, 160),
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || post.content.substring(0, 160),
+      images: post.image ? [post.image] : [],
+    },
+  }
+}
+
+// サーバーコンポーネント（データ取得はサーバーサイドで実行）
+export default async function PostDetail({ params }: { params: { id: string } }) {
+  const post = await getPostById(params.id)
+
   if (!post) {
-    return (
-      <div className="flex flex-1 justify-center items-center py-20">
-        <div className="text-center">
-          <p className="text-[#6a7581] text-lg mb-4">記事が見つかりませんでした</p>
-          <Link href="/" className="text-[#121416] hover:underline flex items-center gap-2">
-            <ArrowLeftIcon className="w-4 h-4" />
-            ホームに戻る
-          </Link>
-        </div>
-      </div>
-    )
+    notFound()
   }
 
   return (

@@ -3,17 +3,24 @@
 import { useState, useRef, DragEvent } from 'react'
 import { PhotoIcon, TrashIcon, PlusIcon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline'
 import { ImageData, ImageLayout } from '@/types/image'
-import { compressImage } from '@/utils/imageCompression'
+import { compressImageToFile } from '@/utils/imageCompression'
+import { storageService } from '@/lib/supabase-service'
 
-interface ImageEditorProps {
+interface ImageEditorSupabaseProps {
   layouts: ImageLayout[]
   onLayoutsChange: (layouts: ImageLayout[]) => void
+  useSupabase?: boolean // Supabaseを使用するかどうか
 }
 
-export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorProps) {
+export default function ImageEditorSupabase({ 
+  layouts, 
+  onLayoutsChange,
+  useSupabase = false 
+}: ImageEditorSupabaseProps) {
   const [draggedImage, setDraggedImage] = useState<{ layoutId: string; imageId: string } | null>(null)
   const [showGuide, setShowGuide] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // シンプルな画像追加
@@ -26,23 +33,37 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     // 画像を処理
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      setUploadProgress(`画像を処理中... (${i + 1}/${files.length})`)
+      
       try {
-        const compressedSrc = await compressImage(file, 800, 0.7)
+        let imageSrc: string
+        
+        if (useSupabase) {
+          // Supabaseにアップロード
+          const compressedFile = await compressImageToFile(file, 800, 0.7)
+          imageSrc = await storageService.uploadImage(compressedFile)
+        } else {
+          // LocalStorage用（従来の方法）
+          const { compressImage } = await import('@/utils/imageCompression')
+          imageSrc = await compressImage(file, 800, 0.7)
+        }
+        
         const imageData: ImageData = {
           id: Date.now() + i + '',
-          src: compressedSrc,
+          src: imageSrc,
           alt: file.name,
           caption: ''
         }
         newImages.push(imageData)
       } catch (error) {
-        console.error('画像の圧縮に失敗しました:', error)
+        console.error('画像の処理に失敗しました:', error)
         alert(`画像 ${file.name} の処理に失敗しました`)
       }
     }
     
     if (newImages.length === 0) {
       setIsUploading(false)
+      setUploadProgress('')
       return
     }
 
@@ -71,17 +92,32 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     }
     
     setIsUploading(false)
+    setUploadProgress('')
     setShowGuide(false)
   }
 
-  const deleteImage = (layoutId: string, imageId: string) => {
-    const updatedLayouts = layouts.map(layout => 
-      layout.id === layoutId 
-        ? { ...layout, images: layout.images.filter(img => img.id !== imageId) }
-        : layout
-    ).filter(layout => layout.images.length > 0) // 空のレイアウトは削除
-    
-    onLayoutsChange(updatedLayouts)
+  const deleteImage = async (layoutId: string, imageId: string) => {
+    try {
+      // Supabaseから画像を削除
+      if (useSupabase) {
+        const layout = layouts.find(l => l.id === layoutId)
+        const image = layout?.images.find(img => img.id === imageId)
+        if (image && image.src.includes('supabase')) {
+          await storageService.deleteImage(image.src)
+        }
+      }
+      
+      const updatedLayouts = layouts.map(layout => 
+        layout.id === layoutId 
+          ? { ...layout, images: layout.images.filter(img => img.id !== imageId) }
+          : layout
+      ).filter(layout => layout.images.length > 0) // 空のレイアウトは削除
+      
+      onLayoutsChange(updatedLayouts)
+    } catch (error) {
+      console.error('画像の削除に失敗しました:', error)
+      alert('画像の削除に失敗しました')
+    }
   }
 
   const updateColumns = (layoutId: string, columns: 1 | 2 | 3 | 4) => {
@@ -149,7 +185,14 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
     <div className="space-y-4">
       {/* ヘッダーとメインボタン */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-[#121416]">画像を追加</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-[#121416]">画像を追加</h3>
+          {useSupabase && (
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+              Supabase連携中
+            </span>
+          )}
+        </div>
         <div className="flex gap-2">
           {showGuide && (
             <button
@@ -175,6 +218,7 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
                 <li>• 下のボタンから画像を選ぶだけ！</li>
                 <li>• 複数選択すると自動で並べます</li>
                 <li>• あとから並び替えもできます</li>
+                {useSupabase && <li>• 画像は自動でクラウドに保存されます</li>}
               </ul>
             </div>
           </div>
@@ -205,7 +249,7 @@ export default function ImageEditor({ layouts, onLayoutsChange }: ImageEditorPro
             {isUploading ? (
               <>
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-3"></div>
-                <p className="text-gray-600">画像を処理中...</p>
+                <p className="text-gray-600">{uploadProgress || '画像を処理中...'}</p>
               </>
             ) : (
               <>
