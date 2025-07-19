@@ -16,8 +16,9 @@ export async function generateStaticParams() {
 }
 
 // メタデータの生成（SEO対策）
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const post = await getPostById(params.id)
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const post = await getPostById(id)
   
   if (!post) {
     return {
@@ -37,8 +38,9 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 // サーバーコンポーネント（データ取得はサーバーサイドで実行）
-export default async function PostDetail({ params }: { params: { id: string } }) {
-  const post = await getPostById(params.id)
+export default async function PostDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const post = await getPostById(id)
 
   if (!post) {
     notFound()
