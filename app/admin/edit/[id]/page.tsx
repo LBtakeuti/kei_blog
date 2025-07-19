@@ -221,7 +221,7 @@ export default function EditPost() {
                   <option key={cat.id} value={cat.slug}>
                     {cat.name}
                   </option>
-                ))
+                ))}
               </select>
             </label>
           </div>
