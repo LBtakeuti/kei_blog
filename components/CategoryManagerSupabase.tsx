@@ -97,10 +97,7 @@ export default function CategoryManagerSupabase({
       if (editingCategory) {
         // 編集
         if (useSupabase) {
-          await categoryService.update(editingCategory.id, {
-            ...formData,
-            updatedAt: new Date().toISOString()
-          })
+          await categoryService.update(editingCategory.id, formData)
         } else {
           const updated = categories.map(cat => 
             cat.id === editingCategory.id 

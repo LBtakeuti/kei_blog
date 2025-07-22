@@ -39,7 +39,6 @@ export default function Header() {
               </>
             )}
           </div>
-          {/* New Post button removed for security */}
         </div>
 
         {/* Mobile Menu Button */}
