@@ -98,7 +98,6 @@ export default function Header() {
                 >
                   Contact
                 </Link>
-                {/* New Post button removed for security */}
               </>
             )}
           </div>
